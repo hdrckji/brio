@@ -40,7 +40,7 @@ export function CheckoutForm({
     return [...map.values()];
   }, [point]);
 
-  if (!cart.ready) return <p className="text-cerise/75">Chargement du panier…</p>;
+  if (!cart.ready) return <p className="text-chocolat/75">Chargement du panier…</p>;
 
   if (cart.lines.length === 0)
     return (
@@ -61,9 +61,9 @@ export function CheckoutForm({
       <input type="hidden" name="paymentMethod" value={payment} />
 
       <div className="space-y-10">
-        <Step n={1} title="Où retirer votre commande">
+        <Step n={1} title="Lieu de retrait">
           {points.length === 0 ? (
-            <p className="text-cerise/75">Aucun point de retrait n&apos;est ouvert pour le moment.</p>
+            <p className="text-chocolat/75">Aucun point de retrait n&apos;est ouvert pour le moment.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Point de retrait">
               {points.map((p) => (
@@ -76,25 +76,25 @@ export function CheckoutForm({
                     setPointId(p.id);
                     setSlotId("");
                   }}
-                  className={`rounded-lg border-2 p-4 text-left transition-colors ${pointId === p.id ? "border-cerise bg-white" : "border-transparent bg-white/60 hover:border-cerise/30"}`}
+                  className={`rounded-lg border-2 p-4 text-left transition-colors ${pointId === p.id ? "border-chocolat bg-papier" : "border-cacao/20 bg-papier/60 hover:border-cacao"}`}
                 >
                   <div className="font-semibold">{p.name}</div>
-                  <div className="text-cerise/80">{p.address}</div>
-                  {p.details && <div className="mt-1 text-sm text-cerise/75">{p.details}</div>}
+                  <div className="text-chocolat/80">{p.address}</div>
+                  {p.details && <div className="mt-1 text-sm text-chocolat/75">{p.details}</div>}
                 </button>
               ))}
             </div>
           )}
         </Step>
 
-        <Step n={2} title="Quand">
+        <Step n={2} title="Créneau">
           {!point ? (
-            <p className="text-cerise/75">Choisissez d&apos;abord un point de retrait.</p>
+            <p className="text-chocolat/75">Choisissez d&apos;abord un point de retrait.</p>
           ) : slotsByDay.length === 0 ? (
-            <p className="text-cerise/75">Plus aucun créneau n&apos;est disponible à {point.name}. Essayez un autre point de retrait.</p>
+            <p className="text-chocolat/75">Plus aucun créneau n&apos;est disponible à {point.name}. Essayez un autre point de retrait.</p>
           ) : (
             <div className="space-y-5" role="radiogroup" aria-label="Créneau de retrait">
-              <p className="text-sm text-cerise/75">Seuls les créneaux à plus de {leadTimeHours} heures sont proposés.</p>
+              <p className="text-sm text-chocolat/75">Seuls les créneaux à plus de {leadTimeHours} heures sont proposés.</p>
               {slotsByDay.map((d) => (
                 <div key={d.label}>
                   <div className="mb-2 font-semibold first-letter:uppercase">{d.label}</div>
@@ -107,7 +107,7 @@ export function CheckoutForm({
                         key={s.id}
                         disabled={s.remaining === 0}
                         onClick={() => setSlotId(s.id)}
-                        className={`rounded-full border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-cerise/45 disabled:line-through ${slotId === s.id ? "border-cerise bg-cerise text-white" : "border-cerise/20 bg-white hover:border-cerise"}`}
+                        className={`rounded-full border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-chocolat/45 disabled:line-through ${slotId === s.id ? "border-chocolat bg-chocolat text-white" : "border-cacao/35 bg-papier hover:border-chocolat"}`}
                       >
                         {s.timeLabel}
                         {s.remaining === 0 && <span className="sr-only"> (complet)</span>}
@@ -129,12 +129,12 @@ export function CheckoutForm({
             <div>
               <label className="label" htmlFor="email">Email</label>
               <input className="input" id="email" name="email" type="email" required autoComplete="email" />
-              <p className="mt-1 text-sm text-cerise/75">Pour recevoir la confirmation.</p>
+              <p className="mt-1 text-sm text-chocolat/75">Pour recevoir la confirmation.</p>
             </div>
             <div>
               <label className="label" htmlFor="phone">Téléphone</label>
               <input className="input" id="phone" name="phone" type="tel" required autoComplete="tel" />
-              <p className="mt-1 text-sm text-cerise/75">En cas d&apos;imprévu le jour du retrait.</p>
+              <p className="mt-1 text-sm text-chocolat/75">En cas d&apos;imprévu le jour du retrait.</p>
             </div>
             <div className="sm:col-span-2">
               <label className="label" htmlFor="note">Une précision pour la boulangerie ? (facultatif)</label>
@@ -144,17 +144,17 @@ export function CheckoutForm({
         </Step>
 
         <Step n={4} title="Paiement">
-          {paymentMethods.length === 0 && <p className="text-cerise/75">Aucun mode de paiement n&apos;est disponible pour le moment.</p>}
+          {paymentMethods.length === 0 && <p className="text-chocolat/75">Aucun mode de paiement n&apos;est disponible pour le moment.</p>}
           <div className="space-y-2">
             {paymentMethods.map((m) => (
               <label
                 key={m}
-                className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 bg-white p-4 transition-colors ${payment === m ? "border-cerise" : "border-transparent hover:border-cerise/30"}`}
+                className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 bg-papier p-4 transition-colors ${payment === m ? "border-chocolat" : "border-cacao/20 hover:border-cacao"}`}
               >
-                <input type="radio" name="_payment" checked={payment === m} onChange={() => setPayment(m)} className="mt-1 accent-cerise" />
+                <input type="radio" name="_payment" checked={payment === m} onChange={() => setPayment(m)} className="mt-1 accent-chocolat" />
                 <span>
                   <span className="block font-semibold">{PAYMENT_LABELS[m]}</span>
-                  <span className="block text-sm text-cerise/75">{PAYMENT_HELP[m]}</span>
+                  <span className="block text-sm text-chocolat/75">{PAYMENT_HELP[m]}</span>
                 </span>
               </label>
             ))}
@@ -163,31 +163,29 @@ export function CheckoutForm({
       </div>
 
       <aside className="lg:sticky lg:top-6">
-        <div className="rounded-t-lg bg-kraft/70 px-6 pt-6 pb-5">
-          <h2 className="font-display text-3xl leading-none">Votre commande</h2>
+        <div className="rounded-2xl border-2 border-cacao bg-papier px-6 pt-6 pb-5 outline-2 -outline-offset-[10px] outline-cacao/50 outline-dotted">
+          <h2 className="text-center font-display text-3xl leading-none">Votre commande</h2>
           <ul className="mt-5 space-y-4">
             {cart.lines.map((l) => (
               <li key={l.productId}>
                 <div className="flex items-end">
                   <span className="font-medium">{l.name}</span>
-                  <span className="leader border-cerise/40" aria-hidden />
+                  <span className="leader" aria-hidden />
                   <span>{formatPrice(l.priceCents * l.quantity)}</span>
                 </div>
                 <div className="mt-2 flex items-center gap-3 text-sm">
                   <QuantityStepper value={l.quantity} onChange={(v) => cart.setQuantity(l.productId, v)} label={l.name} />
-                  <span className="text-cerise/75">{formatPrice(l.priceCents)} pièce</span>
+                  <span className="text-chocolat/75">{formatPrice(l.priceCents)} pièce</span>
                 </div>
               </li>
             ))}
           </ul>
-          <div className="mt-5 flex items-end border-t-2 border-cerise pt-3 text-lg font-bold">
+          <div className="mt-5 flex items-end border-t border-cacao/50 pt-3 text-lg font-semibold">
             <span>Total</span>
             <span className="flex-1" />
             <span>{formatPrice(cart.totalCents)}</span>
           </div>
         </div>
-        {/* bord dentelé du ticket */}
-        <div aria-hidden className="h-3 bg-[radial-gradient(circle_at_8px_12px,transparent_7px,color-mix(in_srgb,var(--color-kraft)_70%,transparent)_7.5px)] bg-[length:16px_12px] bg-repeat-x" />
 
         <div className="mt-5 space-y-3">
           {state?.error && (
@@ -198,7 +196,7 @@ export function CheckoutForm({
           <button type="submit" className="btn w-full py-3 text-base" disabled={pending || Boolean(missing)}>
             {pending ? "Envoi de la commande…" : payment === "STRIPE" ? "Payer et commander" : "Commander"}
           </button>
-          {missing && <p className="text-center text-sm text-cerise/75">{missing}</p>}
+          {missing && <p className="text-center text-sm text-chocolat/75">{missing}</p>}
         </div>
       </aside>
     </form>
@@ -214,8 +212,8 @@ const PAYMENT_HELP = {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-4 flex items-baseline gap-3 border-b-2 border-cerise pb-2">
-        <span className="font-display text-4xl leading-none text-sapin">{n}</span>
+      <h2 className="mb-4 flex items-baseline gap-3 border-b border-cacao/40 pb-2">
+        <span className="font-display text-3xl leading-none text-pervenche">{n}.</span>
         <span className="font-display text-3xl leading-none">{title}</span>
       </h2>
       {children}

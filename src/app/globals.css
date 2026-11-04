@@ -1,27 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  /* Palette « farine & cerise » */
-  --color-farine: #fffcf7; /* fond */
-  --color-cerise: #5e1220; /* texte, boutons principaux */
-  --color-cerise-light: #7a1a2b;
-  --color-sapin: #1f5a43; /* accent : prix, numéros d'étape */
-  --color-sapin-dark: #174634;
-  --color-mousse: #1f5a43;
-  --color-kraft: #ebd9c3; /* ticket récapitulatif */
+  /* Identité Coukiz, tirée du logo */
+  --color-creme: #fbefe3; /* fond, intérieur du médaillon */
+  --color-papier: #fffaf4; /* champs et surfaces */
+  --color-chocolat: #5c3122; /* texte, boutons */
+  --color-chocolat-light: #74412f;
+  --color-cacao: #8c5643; /* trait du logo : filets, pointillés */
+  --color-pervenche: #4a5590; /* accent : prix, étapes, focus */
+  --color-pervenche-dark: #3b4475;
+  --color-rayure: #a4acd2; /* rayures de l'en-tête */
+  --color-kraft: #f3dfcb;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-gothic), var(--font-body), serif;
+  --font-display: var(--font-roman), Georgia, serif;
 }
 
 body {
-  background: var(--color-farine);
-  color: var(--color-cerise);
+  background: var(--color-creme);
+  color: var(--color-chocolat);
   font-size: 16px;
   line-height: 1.55;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-sapin);
+  outline: 2px solid var(--color-pervenche);
   outline-offset: 2px;
 }
 
@@ -36,26 +38,54 @@ body {
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-cerise px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-cerise-light disabled:cursor-not-allowed disabled:bg-cerise/35;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-chocolat px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-chocolat-light disabled:cursor-not-allowed disabled:bg-chocolat/35;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-cerise/25 bg-white px-5 py-2.5 text-sm font-semibold text-cerise transition-colors hover:border-cerise disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-chocolat/25 bg-white px-5 py-2.5 text-sm font-semibold text-chocolat transition-colors hover:border-chocolat disabled:opacity-50;
   }
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50;
   }
   .input {
-    @apply w-full rounded-md border border-cerise/25 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-cerise focus:ring-2 focus:ring-cerise/15;
+    @apply w-full rounded-md border border-cacao/35 bg-papier px-3 py-2.5 text-[15px] outline-none focus:border-chocolat focus:ring-2 focus:ring-chocolat/15;
   }
   .label {
     @apply mb-1 block text-sm font-medium;
   }
   /* Panneaux de l'administration */
   .card {
-    @apply rounded-lg border border-cerise/15 bg-white p-5;
+    @apply rounded-lg border border-chocolat/15 bg-white p-5;
   }
   /* Ligne pointillée entre un nom et un prix, comme sur une carte de boulangerie */
   .leader {
-    @apply mx-3 mb-[0.4em] min-w-6 flex-1 border-b-2 border-dotted border-cerise/30;
+    @apply mx-3 mb-[0.35em] min-w-6 flex-1 border-b-2 border-dotted border-cacao/45;
   }
+  /* Rayures « toile à matelas » du logo */
+  .rayures {
+    background-color: var(--color-creme);
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--color-rayure) 0 14px,
+      transparent 14px 22px,
+      var(--color-rayure) 22px 27px,
+      transparent 27px 52px
+    );
+  }
+}
+
+/* Panneau crème posé sur les rayures : bord chocolat et pointillés intérieurs, comme le médaillon */
+.etiquette {
+  background: var(--color-creme);
+  border: 2px solid var(--color-cacao);
+  border-radius: 28px;
+  outline: 2px dotted color-mix(in srgb, var(--color-cacao) 55%, transparent);
+  outline-offset: -12px;
+  box-shadow: 0 10px 30px rgb(92 49 34 / 0.12);
+}
+
+/* Photo produit : médaillon rond cerné de pointillés, comme le logo */
+.medaillon {
+  border-radius: 50%;
+  outline: 2px dotted color-mix(in srgb, var(--color-cacao) 60%, transparent);
+  outline-offset: 5px;
 }

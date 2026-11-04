@@ -5,14 +5,14 @@ import { useCart } from "./cart";
 
 export function QuantityStepper({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
   return (
-    <div className="inline-flex items-center rounded-full border border-cerise/25 bg-white">
-      <button type="button" aria-label={`Retirer un ${label}`} className="grid h-10 w-10 place-items-center rounded-full text-lg hover:bg-farine" onClick={() => onChange(value - 1)}>
+    <div className="inline-flex items-center rounded-full border border-cacao/35 bg-papier">
+      <button type="button" aria-label={`Retirer un ${label}`} className="grid h-10 w-10 place-items-center rounded-full text-lg hover:bg-kraft/60" onClick={() => onChange(value - 1)}>
         −
       </button>
       <span className="w-7 text-center font-semibold" aria-live="polite">
         {value}
       </span>
-      <button type="button" aria-label={`Ajouter un ${label}`} className="grid h-10 w-10 place-items-center rounded-full text-lg hover:bg-farine" onClick={() => onChange(value + 1)}>
+      <button type="button" aria-label={`Ajouter un ${label}`} className="grid h-10 w-10 place-items-center rounded-full text-lg hover:bg-kraft/60" onClick={() => onChange(value + 1)}>
         +
       </button>
     </div>
@@ -40,7 +40,7 @@ export function AddToCart({ productId, name, priceCents }: { productId: string; 
       >
         {added ? "Ajouté au panier" : "Ajouter au panier"}
       </button>
-      {inCart > 0 && <span className="text-sm text-cerise/75">{inCart} dans votre panier</span>}
+      {inCart > 0 && <span className="text-sm text-chocolat/75">{inCart} dans votre panier</span>}
     </div>
   );
 }

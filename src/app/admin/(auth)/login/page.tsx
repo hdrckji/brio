@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/auth";
 import { login } from "../../actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Connexion, administration Brio" };
+export const metadata = { title: "Connexion, administration Coukiz" };
 
 export default async function LoginPage() {
   if (await isAdmin()) redirect("/admin");

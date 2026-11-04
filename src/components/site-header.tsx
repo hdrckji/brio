@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CartButton } from "./cart-button";
@@ -7,12 +8,25 @@ import { CartButton } from "./cart-button";
 export function SiteHeader({ shopName }: { shopName: string }) {
   const home = usePathname() === "/";
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 pt-5 sm:px-8">
-      {/* Sur l'accueil, le nom est déjà affiché en grand dans l'en-tête de page */}
-      <Link href="/" className={`font-display text-3xl leading-none ${home ? "invisible" : ""}`} aria-hidden={home} tabIndex={home ? -1 : 0}>
-        {shopName}
-      </Link>
-      <CartButton />
+    <header className="relative mx-auto w-full max-w-5xl px-4 pt-4 sm:px-8 sm:pt-6">
+      <div className="flex justify-end">
+        <CartButton />
+      </div>
+      {home ? (
+        // Accueil : le médaillon du logo, posé sur les rayures et à cheval sur l'étiquette
+        <Image
+          src="/logo-medaillon.webp"
+          alt={shopName}
+          width={716}
+          height={732}
+          priority
+          className="relative z-10 mx-auto -mb-24 w-60 drop-shadow-[0_8px_16px_rgba(92,49,34,0.22)] sm:-mb-32 sm:w-80"
+        />
+      ) : (
+        <Link href="/" aria-label={`${shopName}, retour à la carte`} className="relative z-10 mx-auto -mb-14 block w-28 sm:w-32">
+          <Image src="/logo-medaillon.webp" alt="" width={716} height={732} priority className="drop-shadow-[0_6px_12px_rgba(92,49,34,0.2)]" />
+        </Link>
+      )}
     </header>
   );
 }

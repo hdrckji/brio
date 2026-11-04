@@ -42,7 +42,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/points" className="text-sm text-cerise/75 hover:text-cerise">Tous les points de retrait</Link>
+      <Link href="/admin/points" className="text-sm text-chocolat/75 hover:text-chocolat">Tous les points de retrait</Link>
       <h1 className="font-display text-5xl leading-none">{point.name}</h1>
 
       <PointForm point={point} />
@@ -51,7 +51,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
         <h2 className="font-display text-2xl">Ajouter des créneaux</h2>
         <ActionForm action={generateSlots} className="card space-y-4 text-sm">
           <input type="hidden" name="pickupPointId" value={point.id} />
-          <p className="text-cerise/75">
+          <p className="text-chocolat/75">
             Génère des créneaux réguliers sur une période. Ex. : du 20 au 24 décembre, de 08:00 à 12:00, créneaux de 30 min, 10 commandes max par créneau.
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -68,7 +68,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
               <div className="flex flex-wrap gap-2 pt-2">
                 {WEEKDAYS.map((d) => (
                   <label key={d.v} className="flex items-center gap-1">
-                    <input type="checkbox" name="weekdays" value={d.v} defaultChecked className="accent-sapin" />
+                    <input type="checkbox" name="weekdays" value={d.v} defaultChecked className="accent-pervenche" />
                     {d.l}
                   </label>
                 ))}
@@ -100,23 +100,23 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-2xl">Créneaux</h2>
-          <Link href={showPast ? `/admin/points/${id}` : `/admin/points/${id}?passes=1`} className="text-sm text-sapin hover:underline">
+          <Link href={showPast ? `/admin/points/${id}` : `/admin/points/${id}?passes=1`} className="text-sm text-pervenche hover:underline">
             {showPast ? "Masquer les créneaux passés" : "Afficher les créneaux passés"}
           </Link>
         </div>
-        {byDay.size === 0 && <p className="card text-sm text-cerise/75">Aucun créneau.</p>}
+        {byDay.size === 0 && <p className="card text-sm text-chocolat/75">Aucun créneau.</p>}
         {[...byDay.entries()].map(([k, d]) => (
           <div key={k} className="card p-0">
-            <div className="border-b border-cerise/10 px-4 py-2 font-medium first-letter:uppercase">{d.label}</div>
+            <div className="border-b border-chocolat/10 px-4 py-2 font-medium first-letter:uppercase">{d.label}</div>
             <table className="w-full text-sm">
-              <tbody className="divide-y divide-cerise/10">
+              <tbody className="divide-y divide-chocolat/10">
                 {d.slots.map((s) => (
-                  <tr key={s.id} className={s.active ? "" : "text-cerise/55"}>
+                  <tr key={s.id} className={s.active ? "" : "text-chocolat/55"}>
                     <td className="px-4 py-2 tabular-nums">
                       {formatTime(s.startsAt)} – {formatTime(s.endsAt)}
                     </td>
                     <td className="px-4 py-2">
-                      <span className={s._count.orders >= s.capacity ? "font-semibold text-sapin" : ""}>
+                      <span className={s._count.orders >= s.capacity ? "font-semibold text-pervenche" : ""}>
                         {s._count.orders} / {s.capacity}
                       </span>{" "}
                       réservé(s)
@@ -126,7 +126,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
                         <input type="hidden" name="id" value={s.id} />
                         <input className="input w-20 py-1" type="number" name="capacity" min={0} defaultValue={s.capacity} aria-label="Capacité" />
                         <label className="flex items-center gap-1">
-                          <input type="checkbox" name="active" defaultChecked={s.active} className="accent-sapin" /> Ouvert
+                          <input type="checkbox" name="active" defaultChecked={s.active} className="accent-pervenche" /> Ouvert
                         </label>
                         <SubmitButton className="btn-secondary py-1">OK</SubmitButton>
                       </form>
@@ -150,7 +150,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
         ))}
       </section>
 
-      <form action={deletePickupPoint} className="border-t border-cerise/10 pt-6">
+      <form action={deletePickupPoint} className="border-t border-chocolat/10 pt-6">
         <input type="hidden" name="id" value={point.id} />
         <ConfirmButton message="Supprimer ce point de retrait ? S'il a déjà des commandes, il sera seulement désactivé.">
           Supprimer le point de retrait

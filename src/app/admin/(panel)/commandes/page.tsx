@@ -88,7 +88,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/com
 
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="bg-farine text-left text-cerise/70">
+          <thead className="bg-creme text-left text-chocolat/70">
             <tr>
               <th className="px-4 py-2">Réf.</th>
               <th className="px-4 py-2">Client</th>
@@ -99,22 +99,22 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/com
               <th className="px-4 py-2">Paiement</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-cerise/10">
+          <tbody className="divide-y divide-chocolat/10">
             {orders.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-cerise/75">Aucune commande.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-chocolat/75">Aucune commande.</td></tr>
             )}
             {orders.map((o) => (
-              <tr key={o.id} className="hover:bg-farine/50">
+              <tr key={o.id} className="hover:bg-creme/50">
                 <td className="px-4 py-2 font-semibold">
-                  <Link href={`/admin/commandes/${o.id}`} className="text-sapin hover:underline">{o.reference}</Link>
+                  <Link href={`/admin/commandes/${o.id}`} className="text-pervenche hover:underline">{o.reference}</Link>
                 </td>
                 <td className="px-4 py-2">
                   <div>{o.customerName}</div>
-                  <div className="text-xs text-cerise/75">{o.phone}</div>
+                  <div className="text-xs text-chocolat/75">{o.phone}</div>
                 </td>
                 <td className="px-4 py-2">
                   <div>{formatDateTime(o.pickupSlot.startsAt)}</div>
-                  <div className="text-xs text-cerise/75">{o.pickupSlot.pickupPoint.name}</div>
+                  <div className="text-xs text-chocolat/75">{o.pickupSlot.pickupPoint.name}</div>
                 </td>
                 <td className="px-4 py-2 text-xs">
                   {o.items.map((i) => `${i.quantity}× ${i.productName}`).join(", ")}
