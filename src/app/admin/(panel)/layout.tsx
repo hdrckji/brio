@@ -18,25 +18,25 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin();
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-sapin/10 bg-white">
+      <header className="border-b border-cerise/10 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-baseline gap-2">
             <span className="font-display text-3xl leading-none">Brio</span>
-            <span className="text-sm text-sapin/75">administration</span>
+            <span className="text-sm text-cerise/75">administration</span>
           </Link>
           <nav className="flex flex-1 flex-wrap gap-1 text-sm">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="rounded-full px-3 py-1.5 hover:bg-givre">
+              <Link key={n.href} href={n.href} className="rounded-full px-3 py-1.5 hover:bg-farine">
                 {n.label}
               </Link>
             ))}
           </nav>
           <div className="flex items-center gap-3 text-sm">
-            <Link href="/" target="_blank" className="text-sapin/75 hover:text-sapin">
+            <Link href="/" target="_blank" className="text-cerise/75 hover:text-cerise">
               Voir le site
             </Link>
             <form action={logout}>
-              <button className="text-sapin/75 hover:text-sapin">Déconnexion</button>
+              <button className="text-cerise/75 hover:text-cerise">Déconnexion</button>
             </form>
           </div>
         </div>

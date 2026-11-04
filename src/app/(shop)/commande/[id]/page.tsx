@@ -54,44 +54,44 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/co
         Commande <strong>{order.reference}</strong> {STATUS_TEXT[order.status]}.
       </p>
       {justPlaced && order.status === "CONFIRMED" && (
-        <p className="mt-1 text-sapin/75">Un email de confirmation a été envoyé à {order.email}.</p>
+        <p className="mt-1 text-cerise/75">Un email de confirmation a été envoyé à {order.email}.</p>
       )}
       {order.status === "AWAITING_PAYMENT" && (
-        <p className="mt-1 text-sapin/75">Rechargez cette page dans quelques instants si le statut ne change pas.</p>
+        <p className="mt-1 text-cerise/75">Rechargez cette page dans quelques instants si le statut ne change pas.</p>
       )}
 
-      <section className="mt-10 border-t-2 border-sapin pt-4">
+      <section className="mt-10 border-t-2 border-cerise pt-4">
         <h2 className="font-display text-3xl">Retrait</h2>
         <p className="mt-2 text-lg font-semibold first-letter:uppercase">{formatSlot(order.pickupSlot.startsAt, order.pickupSlot.endsAt)}</p>
         <p>{point.name}</p>
-        <p className="text-sapin/80">{point.address}</p>
-        {point.details && <p className="mt-1 text-sm text-sapin/75">{point.details}</p>}
+        <p className="text-cerise/80">{point.address}</p>
+        {point.details && <p className="mt-1 text-sm text-cerise/75">{point.details}</p>}
       </section>
 
       {order.paymentMethod === "TRANSFER" && toPay && (
-        <section className="mt-8 rounded-lg bg-kraft/45 p-6">
+        <section className="mt-8 rounded-lg bg-kraft/70 p-6">
           <h2 className="font-display text-3xl">Virement à effectuer</h2>
           <p className="mt-2">
             Virez <strong>{formatPrice(order.totalCents)}</strong> avant le retrait, avec la référence de commande en communication.
           </p>
           <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
-            <dt className="text-sapin/75">Titulaire</dt>
+            <dt className="text-cerise/75">Titulaire</dt>
             <dd>{settings.bankHolder}</dd>
-            <dt className="text-sapin/75">IBAN</dt>
+            <dt className="text-cerise/75">IBAN</dt>
             <dd className="select-all">{settings.bankIban}</dd>
             {settings.bankBic && (
               <>
-                <dt className="text-sapin/75">BIC</dt>
+                <dt className="text-cerise/75">BIC</dt>
                 <dd className="select-all">{settings.bankBic}</dd>
               </>
             )}
-            <dt className="text-sapin/75">Communication</dt>
+            <dt className="text-cerise/75">Communication</dt>
             <dd className="font-bold select-all">{order.reference}</dd>
           </dl>
         </section>
       )}
 
-      <section className="mt-8 border-t-2 border-sapin pt-4">
+      <section className="mt-8 border-t-2 border-cerise pt-4">
         <h2 className="font-display text-3xl">Détail</h2>
         <ul className="mt-3 space-y-2">
           {order.items.map((i) => (
@@ -104,12 +104,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/co
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex items-end border-t border-sapin/20 pt-3 text-lg font-bold">
+        <div className="mt-3 flex items-end border-t border-cerise/20 pt-3 text-lg font-bold">
           <span>Total</span>
           <span className="flex-1" />
           <span>{formatPrice(order.totalCents)}</span>
         </div>
-        <p className="mt-3 text-sapin/80">
+        <p className="mt-3 text-cerise/80">
           {order.paymentStatus === "PAID"
             ? `Payée (${PAYMENT_LABELS[order.paymentMethod].toLowerCase()}).`
             : order.paymentMethod === "CASH"

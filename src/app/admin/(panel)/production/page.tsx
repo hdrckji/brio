@@ -43,7 +43,7 @@ export default async function ProductionPage({ searchParams }: PageProps<"/admin
         <h1 className="font-display text-5xl leading-none">Production</h1>
         <PrintButton />
       </div>
-      <p className="text-sm text-sapin/75">Quantités à préparer par jour de retrait (commandes confirmées et prêtes, hors retirées et annulées).</p>
+      <p className="text-sm text-cerise/75">Quantités à préparer par jour de retrait (commandes confirmées et prêtes, hors retirées et annulées).</p>
       <form className="card flex flex-wrap items-end gap-3 text-sm print:hidden">
         <div>
           <label className="label">À partir du</label>
@@ -61,26 +61,26 @@ export default async function ProductionPage({ searchParams }: PageProps<"/admin
         <button className="btn">Afficher</button>
       </form>
 
-      {sortedDays.length === 0 && <p className="card text-sm text-sapin/75">Rien à produire sur cette période.</p>}
+      {sortedDays.length === 0 && <p className="card text-sm text-cerise/75">Rien à produire sur cette période.</p>}
       {sortedDays.map(([key, d]) => (
         <section key={key} className="card break-inside-avoid">
           <h2 className="mb-3 font-display text-2xl first-letter:uppercase">{d.label}</h2>
           <table className="w-full text-sm">
-            <thead className="text-left text-sapin/75">
+            <thead className="text-left text-cerise/75">
               <tr>
                 <th className="py-1">Produit</th>
                 <th className="py-1 text-right">Total</th>
                 <th className="py-1 pl-6">Détail par point</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-sapin/10">
+            <tbody className="divide-y divide-cerise/10">
               {[...d.products.entries()]
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([name, p]) => (
                   <tr key={name}>
                     <td className="py-2 font-medium">{name}</td>
                     <td className="py-2 text-right text-lg font-semibold tabular-nums">{p.total}</td>
-                    <td className="py-2 pl-6 text-sapin/70">
+                    <td className="py-2 pl-6 text-cerise/70">
                       {[...p.byPoint.entries()].map(([pn, q]) => `${pn} : ${q}`).join(", ")}
                     </td>
                   </tr>

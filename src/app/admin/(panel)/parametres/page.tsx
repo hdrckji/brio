@@ -5,7 +5,7 @@ import { updateSettings } from "../../actions";
 function Check({ name, label, checked }: { name: string; label: string; checked: boolean }) {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" name={name} defaultChecked={checked} className="accent-airelle" /> {label}
+      <input type="checkbox" name={name} defaultChecked={checked} className="accent-sapin" /> {label}
     </label>
   );
 }
@@ -79,7 +79,7 @@ export default async function SettingsPage() {
               <input className="input font-semibold" id="bankBic" name="bankBic" defaultValue={s.bankBic} />
             </div>
           </div>
-          <p className="text-xs text-sapin/75">Le virement n&apos;est proposé aux clients que si un IBAN est renseigné.</p>
+          <p className="text-xs text-cerise/75">Le virement n&apos;est proposé aux clients que si un IBAN est renseigné.</p>
         </section>
 
         <SubmitButton>Enregistrer</SubmitButton>

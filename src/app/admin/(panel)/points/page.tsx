@@ -11,14 +11,14 @@ export default async function PointsPage() {
     <div className="space-y-6">
       <h1 className="font-display text-5xl leading-none">Points de retrait</h1>
       <div className="grid gap-3 sm:grid-cols-2">
-        {points.length === 0 && <p className="text-sm text-sapin/75">Aucun point de retrait pour le moment.</p>}
+        {points.length === 0 && <p className="text-sm text-cerise/75">Aucun point de retrait pour le moment.</p>}
         {points.map((p) => (
-          <Link key={p.id} href={`/admin/points/${p.id}`} className="card hover:border-airelle">
+          <Link key={p.id} href={`/admin/points/${p.id}`} className="card hover:border-sapin">
             <div className="flex items-start justify-between gap-2">
               <div className="font-semibold">{p.name}</div>
-              {!p.active && <span className="text-xs text-sapin/65">Inactif</span>}
+              {!p.active && <span className="text-xs text-cerise/65">Inactif</span>}
             </div>
-            <div className="text-sm text-sapin/70">{p.address}</div>
+            <div className="text-sm text-cerise/70">{p.address}</div>
             <div className="mt-2 text-xs text-mousse">{p._count.slots} créneau(x) à venir</div>
           </Link>
         ))}
