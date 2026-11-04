@@ -16,9 +16,9 @@ function siteUrl() {
 }
 
 function layout(settings: Settings, title: string, body: string) {
-  return `<!doctype html><html><body style="margin:0;background:#f7f3ee;font-family:Arial,Helvetica,sans-serif;color:#2b2420">
+  return `<!doctype html><html><body style="margin:0;background:#edf0eb;font-family:Arial,Helvetica,sans-serif;color:#16302a">
 <div style="max-width:560px;margin:0 auto;padding:24px">
-<h1 style="font-size:22px;color:#8a1c1c;margin:0 0 4px">${esc(settings.shopName)}</h1>
+<h1 style="font-size:28px;color:#16302a;font-family:Georgia,serif;margin:0 0 4px">${esc(settings.shopName)}</h1>
 <div style="background:#fff;border-radius:8px;padding:24px;margin-top:16px">
 <h2 style="font-size:18px;margin:0 0 16px">${title}</h2>
 ${body}
@@ -49,7 +49,7 @@ function paymentInstructions(order: FullOrder, s: Settings) {
   if (order.paymentMethod === "CASH")
     return `<p>Vous réglerez <strong>${formatPrice(order.totalCents)}</strong> en espèces lors du retrait.</p>`;
   return `<p>Merci d'effectuer un virement de <strong>${formatPrice(order.totalCents)}</strong> avant le retrait :</p>
-<p style="background:#f7f3ee;padding:12px;border-radius:6px;font-family:monospace">
+<p style="background:#edf0eb;padding:12px;border-radius:6px;font-family:monospace">
 Titulaire : ${esc(s.bankHolder)}<br>IBAN : ${esc(s.bankIban)}<br>${s.bankBic ? `BIC : ${esc(s.bankBic)}<br>` : ""}Communication : <strong>${order.reference}</strong></p>`;
 }
 
@@ -57,7 +57,7 @@ export async function sendOrderConfirmation(order: FullOrder) {
   const s = await getSettings();
   const body = `<p>Bonjour ${esc(order.customerName)},</p><p>Merci pour votre commande ! Voici le récapitulatif.</p>
 ${summary(order)}${paymentInstructions(order, s)}
-<p><a href="${siteUrl()}/commande/${order.id}" style="color:#8a1c1c">Voir ma commande</a></p>`;
+<p><a href="${siteUrl()}/commande/${order.id}" style="color:#16302a">Voir ma commande</a></p>`;
   await sendEmail(order.email, `Commande ${order.reference} confirmée`, layout(s, "Commande confirmée", body));
 
   if (s.notifyEmail) {

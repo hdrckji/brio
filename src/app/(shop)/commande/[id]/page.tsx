@@ -2,12 +2,20 @@ import { notFound } from "next/navigation";
 import { ClearCart } from "@/components/clear-cart";
 import { db } from "@/lib/db";
 import { fullOrderInclude } from "@/lib/emails";
-import { formatPrice, formatSlot, ORDER_STATUS_LABELS, PAYMENT_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/format";
+import { formatPrice, formatSlot, PAYMENT_LABELS } from "@/lib/format";
 import { markStripeOrderPaid } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 import { getStripe } from "@/lib/stripe";
 
-export const metadata = { title: "Ma commande — Brio" };
+export const metadata = { title: "Ma commande, Brio" };
+
+const STATUS_TEXT = {
+  AWAITING_PAYMENT: "en attente de la confirmation du paiement",
+  CONFIRMED: "confirmée",
+  READY: "prête, elle vous attend",
+  PICKED_UP: "retirée",
+  CANCELLED: "annulée",
+} as const;
 
 export default async function OrderPage({ params, searchParams }: PageProps<"/commande/[id]">) {
   const { id } = await params;
@@ -32,86 +40,85 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/co
   const settings = await getSettings();
   const justPlaced = Boolean(sp.nouvelle || sessionId);
   const point = order.pickupSlot.pickupPoint;
+  const live = order.status !== "CANCELLED";
+  const toPay = live && order.paymentStatus === "PENDING";
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {justPlaced && order.status !== "AWAITING_PAYMENT" && order.status !== "CANCELLED" && <ClearCart />}
-      <div className="text-center">
-        <div className="text-5xl">{order.status === "CANCELLED" ? "✖" : "🎁"}</div>
-        <h1 className="mt-2 font-serif text-3xl font-bold">
-          {order.status === "AWAITING_PAYMENT"
-            ? "Paiement en cours de validation"
-            : order.status === "CANCELLED"
-              ? "Commande annulée"
-              : justPlaced
-                ? "Merci pour votre commande !"
-                : "Votre commande"}
-        </h1>
-        <p className="mt-2 text-ink/70">
-          Référence <strong className="font-mono">{order.reference}</strong>
-          {justPlaced && order.status === "CONFIRMED" && <> · un email de confirmation a été envoyé à {order.email}</>}
-        </p>
-      </div>
+    <div className="max-w-2xl">
+      {justPlaced && order.status !== "AWAITING_PAYMENT" && live && <ClearCart />}
 
-      {order.paymentMethod === "TRANSFER" && order.paymentStatus === "PENDING" && order.status !== "CANCELLED" && (
-        <div className="card space-y-2 border-gold/40 bg-gold/10">
-          <h2 className="font-semibold">Virement à effectuer</h2>
-          <p className="text-sm">Merci de virer <strong>{formatPrice(order.totalCents)}</strong> avant le retrait :</p>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-sm">
-            <dt>Titulaire</dt>
+      <h1 className="font-display text-6xl leading-[0.9] sm:text-7xl">
+        {!live ? "Commande annulée" : order.status === "AWAITING_PAYMENT" ? "Paiement en cours" : justPlaced ? "Merci !" : "Votre commande"}
+      </h1>
+      <p className="mt-4 text-xl">
+        Commande <strong>{order.reference}</strong> {STATUS_TEXT[order.status]}.
+      </p>
+      {justPlaced && order.status === "CONFIRMED" && (
+        <p className="mt-1 text-sapin/75">Un email de confirmation a été envoyé à {order.email}.</p>
+      )}
+      {order.status === "AWAITING_PAYMENT" && (
+        <p className="mt-1 text-sapin/75">Rechargez cette page dans quelques instants si le statut ne change pas.</p>
+      )}
+
+      <section className="mt-10 border-t-2 border-sapin pt-4">
+        <h2 className="font-display text-3xl">Retrait</h2>
+        <p className="mt-2 text-lg font-semibold first-letter:uppercase">{formatSlot(order.pickupSlot.startsAt, order.pickupSlot.endsAt)}</p>
+        <p>{point.name}</p>
+        <p className="text-sapin/80">{point.address}</p>
+        {point.details && <p className="mt-1 text-sm text-sapin/75">{point.details}</p>}
+      </section>
+
+      {order.paymentMethod === "TRANSFER" && toPay && (
+        <section className="mt-8 rounded-lg bg-kraft/45 p-6">
+          <h2 className="font-display text-3xl">Virement à effectuer</h2>
+          <p className="mt-2">
+            Virez <strong>{formatPrice(order.totalCents)}</strong> avant le retrait, avec la référence de commande en communication.
+          </p>
+          <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
+            <dt className="text-sapin/75">Titulaire</dt>
             <dd>{settings.bankHolder}</dd>
-            <dt>IBAN</dt>
-            <dd>{settings.bankIban}</dd>
+            <dt className="text-sapin/75">IBAN</dt>
+            <dd className="select-all">{settings.bankIban}</dd>
             {settings.bankBic && (
               <>
-                <dt>BIC</dt>
-                <dd>{settings.bankBic}</dd>
+                <dt className="text-sapin/75">BIC</dt>
+                <dd className="select-all">{settings.bankBic}</dd>
               </>
             )}
-            <dt>Communication</dt>
-            <dd className="font-bold">{order.reference}</dd>
+            <dt className="text-sapin/75">Communication</dt>
+            <dd className="font-bold select-all">{order.reference}</dd>
           </dl>
-        </div>
-      )}
-      {order.paymentMethod === "CASH" && order.paymentStatus === "PENDING" && order.status !== "CANCELLED" && (
-        <div className="card border-gold/40 bg-gold/10 text-sm">
-          Vous réglerez <strong>{formatPrice(order.totalCents)}</strong> en espèces lors du retrait.
-        </div>
+        </section>
       )}
 
-      <div className="card space-y-4">
-        <div className="grid gap-4 text-sm sm:grid-cols-2">
-          <div>
-            <div className="text-ink/60">Retrait</div>
-            <div className="font-semibold">{point.name}</div>
-            <div>{point.address}</div>
-            <div className="first-letter:uppercase">{formatSlot(order.pickupSlot.startsAt, order.pickupSlot.endsAt)}</div>
-            {point.details && <div className="mt-1 text-ink/60">{point.details}</div>}
-          </div>
-          <div>
-            <div className="text-ink/60">Statut</div>
-            <div className="font-semibold">{ORDER_STATUS_LABELS[order.status]}</div>
-            <div className="mt-2 text-ink/60">Paiement</div>
-            <div>
-              {PAYMENT_LABELS[order.paymentMethod]} · {PAYMENT_STATUS_LABELS[order.paymentStatus]}
-            </div>
-          </div>
-        </div>
-        <ul className="divide-y divide-ink/10 border-t border-ink/10 text-sm">
+      <section className="mt-8 border-t-2 border-sapin pt-4">
+        <h2 className="font-display text-3xl">Détail</h2>
+        <ul className="mt-3 space-y-2">
           {order.items.map((i) => (
-            <li key={i.id} className="flex justify-between py-2">
+            <li key={i.id} className="flex items-end">
               <span>
                 {i.quantity} × {i.productName}
               </span>
+              <span className="leader" aria-hidden />
               <span>{formatPrice(i.quantity * i.unitPriceCents)}</span>
             </li>
           ))}
-          <li className="flex justify-between py-2 font-semibold">
-            <span>Total</span>
-            <span>{formatPrice(order.totalCents)}</span>
-          </li>
         </ul>
-      </div>
+        <div className="mt-3 flex items-end border-t border-sapin/20 pt-3 text-lg font-bold">
+          <span>Total</span>
+          <span className="flex-1" />
+          <span>{formatPrice(order.totalCents)}</span>
+        </div>
+        <p className="mt-3 text-sapin/80">
+          {order.paymentStatus === "PAID"
+            ? `Payée (${PAYMENT_LABELS[order.paymentMethod].toLowerCase()}).`
+            : order.paymentMethod === "CASH"
+              ? "À régler en espèces au retrait."
+              : order.paymentMethod === "TRANSFER"
+                ? "Paiement par virement, en attente de réception."
+                : "Paiement en attente."}
+        </p>
+      </section>
     </div>
   );
 }

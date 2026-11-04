@@ -24,7 +24,7 @@ export function formatTime(d: Date) {
 }
 
 export function formatSlot(startsAt: Date, endsAt: Date) {
-  return `${formatDate(startsAt)} · ${formatTime(startsAt)} – ${formatTime(endsAt)}`;
+  return `${formatDate(startsAt)}, de ${formatTime(startsAt)} à ${formatTime(endsAt)}`;
 }
 
 export function formatDateTime(d: Date) {

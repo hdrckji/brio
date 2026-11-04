@@ -49,15 +49,15 @@ export function ProductForm({ product }: { product?: Product }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/api/products/${product.id}/image?v=${product.imageVersion}`} alt="" className="h-24 w-32 rounded object-cover" />
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="removeImage" className="accent-berry" /> Supprimer la photo
+              <input type="checkbox" name="removeImage" className="accent-airelle" /> Supprimer la photo
             </label>
           </div>
         )}
         <input className="input" id="image" name="image" type="file" accept="image/*" />
-        <p className="mt-1 text-xs text-ink/60">JPG, PNG ou WebP, 5 Mo maximum.</p>
+        <p className="mt-1 text-xs text-sapin/75">JPG, PNG ou WebP, 5 Mo maximum.</p>
       </div>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="active" defaultChecked={product?.active ?? true} className="accent-berry" />
+        <input type="checkbox" name="active" defaultChecked={product?.active ?? true} className="accent-airelle" />
         En vente sur le site
       </label>
       <SubmitButton>{product ? "Enregistrer" : "Créer le produit"}</SubmitButton>

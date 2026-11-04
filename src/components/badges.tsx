@@ -18,7 +18,7 @@ export function PaymentBadge({ method, status }: { method: PaymentMethod; status
   const color = status === "PAID" ? "bg-green-50 text-green-800" : status === "REFUNDED" ? "bg-gray-100 text-gray-700" : "bg-orange-50 text-orange-800";
   return (
     <span title={PAYMENT_LABELS[method]} className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {short} · {PAYMENT_STATUS_LABELS[status]}
+      {short} {PAYMENT_STATUS_LABELS[status].toLowerCase()}
     </span>
   );
 }

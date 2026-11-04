@@ -5,7 +5,7 @@ import { updateSettings } from "../../actions";
 function Check({ name, label, checked }: { name: string; label: string; checked: boolean }) {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" name={name} defaultChecked={checked} className="accent-berry" /> {label}
+      <input type="checkbox" name={name} defaultChecked={checked} className="accent-airelle" /> {label}
     </label>
   );
 }
@@ -18,10 +18,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-bold">Paramètres</h1>
+      <h1 className="font-display text-5xl leading-none">Paramètres</h1>
       <ActionForm action={updateSettings} className="max-w-2xl space-y-6">
         <section className="card space-y-4">
-          <h2 className="font-serif text-xl font-semibold">Boutique</h2>
+          <h2 className="font-display text-2xl">Boutique</h2>
           <div>
             <label className="label" htmlFor="shopName">Nom</label>
             <input className="input" id="shopName" name="shopName" defaultValue={s.shopName} />
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
         </section>
 
         <section className="card space-y-4">
-          <h2 className="font-serif text-xl font-semibold">Emails</h2>
+          <h2 className="font-display text-2xl">Emails</h2>
           <div>
             <label className="label" htmlFor="notifyEmail">Recevoir les nouvelles commandes à</label>
             <input className="input" id="notifyEmail" name="notifyEmail" type="email" defaultValue={s.notifyEmail} placeholder="commandes@exemple.fr" />
@@ -55,7 +55,7 @@ export default async function SettingsPage() {
         </section>
 
         <section className="card space-y-4">
-          <h2 className="font-serif text-xl font-semibold">Modes de paiement</h2>
+          <h2 className="font-display text-2xl">Modes de paiement</h2>
           <div className="space-y-2">
             <Check name="paymentStripe" label="Carte bancaire en ligne (Stripe)" checked={s.paymentStripe === "true"} />
             {!stripeReady && <p className="pl-6 text-xs text-orange-700">STRIPE_SECRET_KEY manquant : ce mode est masqué.</p>}
@@ -72,14 +72,14 @@ export default async function SettingsPage() {
             </div>
             <div>
               <label className="label" htmlFor="bankIban">IBAN</label>
-              <input className="input font-mono" id="bankIban" name="bankIban" defaultValue={s.bankIban} />
+              <input className="input font-semibold" id="bankIban" name="bankIban" defaultValue={s.bankIban} />
             </div>
             <div>
               <label className="label" htmlFor="bankBic">BIC</label>
-              <input className="input font-mono" id="bankBic" name="bankBic" defaultValue={s.bankBic} />
+              <input className="input font-semibold" id="bankBic" name="bankBic" defaultValue={s.bankBic} />
             </div>
           </div>
-          <p className="text-xs text-ink/60">Le virement n&apos;est proposé aux clients que si un IBAN est renseigné.</p>
+          <p className="text-xs text-sapin/75">Le virement n&apos;est proposé aux clients que si un IBAN est renseigné.</p>
         </section>
 
         <SubmitButton>Enregistrer</SubmitButton>

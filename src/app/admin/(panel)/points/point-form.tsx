@@ -10,7 +10,7 @@ export function PointForm({ point }: { point?: Point }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="name">Nom</label>
-          <input className="input" id="name" name="name" required defaultValue={point?.name} placeholder="Boulangerie — centre-ville" />
+          <input className="input" id="name" name="name" required defaultValue={point?.name} placeholder="Boulangerie du centre" />
         </div>
         <div>
           <label className="label" htmlFor="address">Adresse</label>
@@ -27,7 +27,7 @@ export function PointForm({ point }: { point?: Point }) {
           <input className="input" id="sortOrder" name="sortOrder" type="number" defaultValue={point?.sortOrder ?? 0} />
         </div>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="active" defaultChecked={point?.active ?? true} className="accent-berry" /> Actif
+          <input type="checkbox" name="active" defaultChecked={point?.active ?? true} className="accent-airelle" /> Actif
         </label>
       </div>
       <SubmitButton>{point ? "Enregistrer" : "Créer le point de retrait"}</SubmitButton>

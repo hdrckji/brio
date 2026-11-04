@@ -13,43 +13,59 @@ export default async function HomePage() {
     }),
   ]);
   const open = settings.shopOpen === "true";
+  // Colonne photo seulement si au moins un produit en a une, pour garder la carte alignée
+  const hasImages = products.some((p) => p.imageMime);
 
   return (
-    <div className="space-y-8">
-      <section className="text-center">
-        <h1 className="font-serif text-4xl font-bold text-ink sm:text-5xl">{settings.shopName}</h1>
-        <p className="mt-3 text-lg text-ink/70">{settings.shopTagline}</p>
-        <p className="mt-2 text-sm text-pine">Commande au moins {settings.leadTimeHours} h à l&apos;avance · Retrait en point de retrait</p>
+    <>
+      <section className="pb-10 sm:pb-14">
+        <h1 className="-ml-1 font-display text-[clamp(6rem,24vw,13rem)] leading-[0.8] tracking-tight">{settings.shopName}</h1>
+        <p className="mt-6 max-w-xl text-xl leading-snug sm:text-2xl">{settings.shopTagline}</p>
+        <p className="mt-3 max-w-xl text-sapin/75">
+          Commandez au plus tard {settings.leadTimeHours} heures avant le retrait, puis passez chercher votre commande au point de retrait choisi.
+        </p>
       </section>
 
-      {!open && <div className="card border-gold/40 bg-gold/10 text-center">{settings.closedMessage}</div>}
+      {!open && <p className="mb-10 rounded-lg bg-kraft/40 px-5 py-4 text-lg">{settings.closedMessage}</p>}
 
-      {products.length === 0 ? (
-        <p className="text-center text-ink/60">Aucun produit pour le moment.</p>
-      ) : (
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <li key={p.id} className="card flex flex-col overflow-hidden p-0">
-              <div className="aspect-[4/3] bg-cream">
+      <section aria-labelledby="carte">
+        <h2 id="carte" className="border-b-2 border-sapin pb-2 font-display text-4xl">
+          La carte de Noël
+        </h2>
+        {products.length === 0 ? (
+          <p className="py-8 text-sapin/75">La carte de Noël arrive bientôt.</p>
+        ) : (
+          <ul className="divide-y divide-sapin/15">
+            {products.map((p) => (
+              <li key={p.id} className={`grid gap-x-6 gap-y-4 py-7 ${hasImages ? "sm:grid-cols-[9rem_1fr]" : ""}`}>
                 {p.imageMime ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={`/api/products/${p.id}/image?v=${p.imageVersion}`} alt={p.name} className="h-full w-full object-cover" />
+                  <img
+                    src={`/api/products/${p.id}/image?v=${p.imageVersion}`}
+                    alt=""
+                    className="aspect-square w-full max-w-[9rem] rounded-full object-cover"
+                  />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-5xl">🎄</div>
+                  hasImages && <div className="hidden sm:block" />
                 )}
-              </div>
-              <div className="flex flex-1 flex-col gap-3 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-serif text-xl font-semibold">{p.name}</h2>
-                  <span className="whitespace-nowrap font-semibold text-berry">{formatPrice(p.priceCents)}</span>
+                <div className="min-w-0">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:gap-0">
+                    <h3 className="font-display text-[2rem] leading-none">{p.name}</h3>
+                    <span className="leader hidden sm:block" aria-hidden />
+                    <span className="text-lg font-semibold text-airelle">{formatPrice(p.priceCents)}</span>
+                  </div>
+                  {p.description && <p className="mt-2 max-w-prose whitespace-pre-line text-sapin/80">{p.description}</p>}
+                  {open && (
+                    <div className="mt-4">
+                      <AddToCart productId={p.id} name={p.name} priceCents={p.priceCents} />
+                    </div>
+                  )}
                 </div>
-                {p.description && <p className="flex-1 whitespace-pre-line text-sm text-ink/70">{p.description}</p>}
-                {open && <AddToCart productId={p.id} name={p.name} priceCents={p.priceCents} />}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
   );
 }

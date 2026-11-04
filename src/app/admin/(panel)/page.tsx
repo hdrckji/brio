@@ -26,29 +26,29 @@ export default async function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-bold">Tableau de bord</h1>
+      <h1 className="font-display text-5xl leading-none">Tableau de bord</h1>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card">
-          <div className="text-sm text-ink/60">Commandes (hors annulées)</div>
+          <div className="text-sm text-sapin/75">Commandes (hors annulées)</div>
           <div className="text-3xl font-semibold">{totals._count}</div>
         </div>
         <div className="card">
-          <div className="text-sm text-ink/60">Chiffre d&apos;affaires</div>
+          <div className="text-sm text-sapin/75">Chiffre d&apos;affaires</div>
           <div className="text-3xl font-semibold">{formatPrice(totals._sum.totalCents ?? 0)}</div>
         </div>
-        <Link href="/admin/commandes?paiement=TRANSFER_PENDING" className="card hover:border-berry">
-          <div className="text-sm text-ink/60">Virements en attente</div>
+        <Link href="/admin/commandes?paiement=TRANSFER_PENDING" className="card hover:border-airelle">
+          <div className="text-sm text-sapin/75">Virements en attente</div>
           <div className="text-3xl font-semibold">{pendingTransfers}</div>
         </Link>
       </div>
 
       <section className="card">
-        <h2 className="mb-3 font-serif text-xl font-semibold">Retraits aujourd&apos;hui et demain</h2>
+        <h2 className="mb-3 font-display text-2xl">Retraits aujourd&apos;hui et demain</h2>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-ink/60">Aucun retrait prévu.</p>
+          <p className="text-sm text-sapin/75">Aucun retrait prévu.</p>
         ) : (
           <table className="w-full text-sm">
-            <tbody className="divide-y divide-ink/10">
+            <tbody className="divide-y divide-sapin/10">
               {upcoming.map((o) => (
                 <tr key={o.id}>
                   <td className="py-2 first-letter:uppercase">
@@ -56,7 +56,7 @@ export default async function Dashboard() {
                   </td>
                   <td className="py-2">{o.pickupSlot.pickupPoint.name}</td>
                   <td className="py-2">
-                    <Link className="font-medium text-berry hover:underline" href={`/admin/commandes/${o.id}`}>
+                    <Link className="font-medium text-airelle hover:underline" href={`/admin/commandes/${o.id}`}>
                       {o.reference}
                     </Link>{" "}
                     {o.customerName}

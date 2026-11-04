@@ -10,8 +10,8 @@ export default async function EditProduct({ params }: PageProps<"/admin/produits
   if (id === "nouveau") {
     return (
       <div className="space-y-4">
-        <Link href="/admin/produits" className="text-sm text-ink/60 hover:text-ink">← Produits</Link>
-        <h1 className="font-serif text-3xl font-bold">Nouveau produit</h1>
+        <Link href="/admin/produits" className="text-sm text-sapin/75 hover:text-sapin">Tous les produits</Link>
+        <h1 className="font-display text-5xl leading-none">Nouveau produit</h1>
         <ProductForm />
       </div>
     );
@@ -23,8 +23,8 @@ export default async function EditProduct({ params }: PageProps<"/admin/produits
   if (!product) notFound();
   return (
     <div className="space-y-4">
-      <Link href="/admin/produits" className="text-sm text-ink/60 hover:text-ink">← Produits</Link>
-      <h1 className="font-serif text-3xl font-bold">{product.name}</h1>
+      <Link href="/admin/produits" className="text-sm text-sapin/75 hover:text-sapin">Tous les produits</Link>
+      <h1 className="font-display text-5xl leading-none">{product.name}</h1>
       <ProductForm product={product} />
       <form action={deleteProduct} className="max-w-2xl">
         <input type="hidden" name="id" value={product.id} />

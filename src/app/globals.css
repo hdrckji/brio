@@ -1,38 +1,60 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #f7f3ee;
-  --color-ink: #2b2420;
-  --color-berry: #8a1c1c;
-  --color-berry-dark: #6d1414;
-  --color-pine: #1f4d3a;
-  --color-gold: #b8893b;
+  --color-givre: #edf0eb;
+  --color-sapin: #16302a;
+  --color-sapin-light: #24493f;
+  --color-airelle: #a8123e;
+  --color-airelle-dark: #860d31;
+  --color-mousse: #3d6b5c;
+  --color-kraft: #cdb48e;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-display), ui-serif, Georgia, serif;
+  --font-display: var(--font-gothic), var(--font-body), serif;
 }
 
 body {
-  background: var(--color-cream);
-  color: var(--color-ink);
+  background: var(--color-givre);
+  color: var(--color-sapin);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-airelle);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-berry px-4 py-2 text-sm font-medium text-white transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-sapin px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sapin-light disabled:cursor-not-allowed disabled:bg-sapin/35;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-ink/20 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:bg-ink/5 disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-sapin/25 bg-white px-5 py-2.5 text-sm font-semibold text-sapin transition-colors hover:border-sapin disabled:opacity-50;
   }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50;
   }
   .input {
-    @apply w-full rounded-md border border-ink/20 bg-white px-3 py-2 text-sm outline-none focus:border-berry focus:ring-2 focus:ring-berry/20;
+    @apply w-full rounded-md border border-sapin/25 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-sapin focus:ring-2 focus:ring-sapin/15;
   }
   .label {
     @apply mb-1 block text-sm font-medium;
   }
+  /* Panneaux de l'administration */
   .card {
-    @apply rounded-lg border border-ink/10 bg-white p-5 shadow-sm;
+    @apply rounded-lg border border-sapin/15 bg-white p-5;
+  }
+  /* Ligne pointillée entre un nom et un prix, comme sur une carte de boulangerie */
+  .leader {
+    @apply mx-3 mb-[0.4em] min-w-6 flex-1 border-b-2 border-dotted border-sapin/30;
   }
 }
