@@ -93,3 +93,8 @@ export const ORDER_STATUS_LABELS = {
   PICKED_UP: "Retirée",
   CANCELLED: "Annulée",
 } as const;
+
+/** Libellé d'une ligne de commande : « Cougnou (chocolat) » ou « Stollen ». */
+export function itemLabel(item: { productName: string; variantName?: string | null }) {
+  return item.variantName ? `${item.productName} (${item.variantName})` : item.productName;
+}

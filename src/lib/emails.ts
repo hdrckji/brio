@@ -1,7 +1,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendEmail } from "./email";
-import { formatPrice, formatSlot, PAYMENT_LABELS } from "./format";
+import { PAYMENT_LABELS, formatPrice, formatSlot, itemLabel } from "./format";
 import { getSettings, type Settings } from "./settings";
 
 export type FullOrder = Prisma.OrderGetPayload<{ include: { items: true; pickupSlot: { include: { pickupPoint: true } } } }>;
@@ -29,7 +29,7 @@ function summary(order: FullOrder) {
   const rows = order.items
     .map(
       (i) =>
-        `<tr><td style="padding:4px 0">${i.quantity} × ${esc(i.productName)}</td><td style="padding:4px 0;text-align:right">${formatPrice(i.unitPriceCents * i.quantity)}</td></tr>`,
+        `<tr><td style="padding:4px 0">${i.quantity} × ${esc(itemLabel(i))}</td><td style="padding:4px 0;text-align:right">${formatPrice(i.unitPriceCents * i.quantity)}</td></tr>`,
     )
     .join("");
   const point = order.pickupSlot.pickupPoint;

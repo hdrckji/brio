@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { dayKey, formatDate, localToDate } from "@/lib/format";
+import { dayKey, formatDate, itemLabel, localToDate } from "@/lib/format";
 import { PrintButton } from "./print-button";
 
 export default async function ProductionPage({ searchParams }: PageProps<"/admin/production">) {
@@ -16,6 +16,7 @@ export default async function ProductionPage({ searchParams }: PageProps<"/admin
     },
     select: {
       productName: true,
+      variantName: true,
       quantity: true,
       order: { select: { pickupSlot: { select: { startsAt: true, pickupPoint: { select: { name: true } } } } } },
     },
@@ -29,8 +30,9 @@ export default async function ProductionPage({ searchParams }: PageProps<"/admin
     const key = dayKey(start);
     if (!days.has(key)) days.set(key, { label: formatDate(start), products: new Map() });
     const products = days.get(key)!.products;
-    if (!products.has(it.productName)) products.set(it.productName, { total: 0, byPoint: new Map() });
-    const p = products.get(it.productName)!;
+    const label = itemLabel(it);
+    if (!products.has(label)) products.set(label, { total: 0, byPoint: new Map() });
+    const p = products.get(label)!;
     p.total += it.quantity;
     const pn = it.order.pickupSlot.pickupPoint.name;
     p.byPoint.set(pn, (p.byPoint.get(pn) ?? 0) + it.quantity);

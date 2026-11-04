@@ -83,9 +83,12 @@ body {
   box-shadow: 0 10px 30px rgb(92 49 34 / 0.12);
 }
 
-/* Photo produit : médaillon rond cerné de pointillés, comme le logo */
-.medaillon {
-  border-radius: 50%;
-  outline: 2px dotted color-mix(in srgb, var(--color-cacao) 60%, transparent);
-  outline-offset: 5px;
+/* Photo produit encadrée : passe-partout crème clair et filet chocolat, comme une photo collée sur l'étiquette */
+.cadre-photo {
+  align-self: start;
+  padding: 6px;
+  background: var(--color-papier);
+  border: 1.5px solid color-mix(in srgb, var(--color-cacao) 70%, transparent);
+  border-radius: 1.1rem;
+  box-shadow: 0 6px 18px rgb(92 49 34 / 0.1);
 }

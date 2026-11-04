@@ -1,6 +1,6 @@
 import { isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatDateTime, formatTime, ORDER_STATUS_LABELS, PAYMENT_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/format";
+import { ORDER_STATUS_LABELS, PAYMENT_LABELS, PAYMENT_STATUS_LABELS, formatDateTime, formatTime, itemLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export async function GET() {
     o.customerName,
     o.email,
     o.phone,
-    o.items.map((i) => `${i.quantity}x ${i.productName}`).join(", "),
+    o.items.map((i) => `${i.quantity}x ${itemLabel(i)}`).join(", "),
     (o.totalCents / 100).toFixed(2).replace(".", ","),
     PAYMENT_LABELS[o.paymentMethod],
     PAYMENT_STATUS_LABELS[o.paymentStatus],

@@ -65,7 +65,7 @@ export type CreateOrderInput = {
   note: string;
   pickupSlotId: string;
   paymentMethod: "STRIPE" | "TRANSFER" | "CASH";
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; variantId?: string | null; quantity: number }[];
 };
 
 export class OrderError extends Error {}
@@ -75,22 +75,45 @@ export async function createOrder(input: CreateOrderInput) {
   const settings = await getSettings();
   if (settings.shopOpen !== "true") throw new OrderError("Les commandes sont actuellement fermées.");
 
-  const quantities = new Map<string, number>();
+  // Regroupe les lignes identiques (même produit et même déclinaison)
+  const quantities = new Map<string, { productId: string; variantId: string | null; quantity: number }>();
   for (const it of input.items) {
-    if (it.quantity > 0) quantities.set(it.productId, (quantities.get(it.productId) ?? 0) + it.quantity);
+    if (it.quantity <= 0) continue;
+    const variantId = it.variantId || null;
+    const key = `${it.productId}:${variantId ?? ""}`;
+    const line = quantities.get(key) ?? { productId: it.productId, variantId, quantity: 0 };
+    line.quantity += it.quantity;
+    quantities.set(key, line);
   }
   if (quantities.size === 0) throw new OrderError("Votre panier est vide.");
 
-  const products = await db.product.findMany({ where: { id: { in: [...quantities.keys()] }, active: true } });
-  if (products.length !== quantities.size)
-    throw new OrderError("Un article de votre panier n'est plus disponible. Merci de vérifier votre panier.");
+  const productIds = [...new Set([...quantities.values()].map((l) => l.productId))];
+  const products = await db.product.findMany({
+    where: { id: { in: productIds }, active: true },
+    include: { variants: { where: { active: true } } },
+  });
+  const byId = new Map(products.map((p) => [p.id, p]));
 
-  const items = products.map((p) => ({
-    productId: p.id,
-    productName: p.name,
-    unitPriceCents: p.priceCents,
-    quantity: quantities.get(p.id)!,
-  }));
+  const items = [...quantities.values()].map((line) => {
+    const product = byId.get(line.productId);
+    if (!product) throw new OrderError("Un article de votre panier n'est plus disponible. Merci de vérifier votre panier.");
+    let variant = null;
+    if (product.variants.length > 0) {
+      variant = product.variants.find((v) => v.id === line.variantId);
+      if (!variant)
+        throw new OrderError(`Le choix « ${product.name} » de votre panier n'est plus disponible. Retirez-le puis ajoutez-le à nouveau.`);
+    } else if (line.variantId) {
+      throw new OrderError(`« ${product.name} » a changé depuis votre ajout au panier. Retirez-le puis ajoutez-le à nouveau.`);
+    }
+    return {
+      productId: product.id,
+      productName: product.name,
+      variantId: variant?.id ?? null,
+      variantName: variant?.name ?? "",
+      unitPriceCents: variant?.priceCents ?? product.priceCents,
+      quantity: line.quantity,
+    };
+  });
   const totalCents = items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0);
   const minStart = new Date(Date.now() + Number(settings.leadTimeHours || 24) * 3_600_000);
 

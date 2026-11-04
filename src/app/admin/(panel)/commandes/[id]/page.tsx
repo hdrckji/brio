@@ -4,7 +4,7 @@ import { ConfirmButton, SubmitButton } from "@/components/action-form";
 import { PaymentBadge, StatusBadge } from "@/components/badges";
 import { db } from "@/lib/db";
 import { fullOrderInclude } from "@/lib/emails";
-import { formatDateTime, formatPrice, formatSlot, PAYMENT_LABELS } from "@/lib/format";
+import { PAYMENT_LABELS, formatDateTime, formatPrice, formatSlot, itemLabel } from "@/lib/format";
 import { markPaid, markPickedUpAndPaid, setOrderStatus } from "../../../actions";
 
 export default async function OrderDetail({ params }: PageProps<"/admin/commandes/[id]">) {
@@ -50,7 +50,7 @@ export default async function OrderDetail({ params }: PageProps<"/admin/commande
                 {order.items.map((i) => (
                   <tr key={i.id}>
                     <td className="py-2">{i.quantity} ×</td>
-                    <td className="py-2">{i.productName}</td>
+                    <td className="py-2">{itemLabel(i)}</td>
                     <td className="py-2 text-right text-chocolat/75">{formatPrice(i.unitPriceCents)}</td>
                     <td className="py-2 text-right">{formatPrice(i.unitPriceCents * i.quantity)}</td>
                   </tr>

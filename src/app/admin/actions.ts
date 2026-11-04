@@ -31,7 +31,7 @@ export async function logout() {
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-function parsePrice(raw: FormDataEntryValue | null) {
+function parsePrice(raw: FormDataEntryValue | string | null) {
   const n = Number(String(raw ?? "").replace(",", ".").trim());
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : null;
 }
@@ -74,8 +74,42 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     data.imageVersion = { increment: 1 };
   }
 
-  if (id) await db.product.update({ where: { id }, data });
-  else await db.product.create({ data: { ...data, imageVersion: data.imageData ? 1 : 0 } });
+  // Déclinaisons (goûts) : envoyées en JSON par l'éditeur
+  let variants: { id?: string; name: string; priceCents: number | null; active: boolean; sortOrder: number }[];
+  try {
+    const raw = z
+      .array(z.object({ id: z.string().optional(), name: z.string(), price: z.string(), active: z.boolean() }))
+      .parse(JSON.parse(String(formData.get("variants") || "[]")));
+    variants = [];
+    for (const [i, v] of raw.entries()) {
+      const name = v.name.trim();
+      if (!name) continue;
+      let variantPrice: number | null = null;
+      if (v.price.trim()) {
+        variantPrice = parsePrice(v.price);
+        if (variantPrice === null) return { error: `Prix invalide pour le goût « ${name} ».` };
+      }
+      variants.push({ id: v.id, name, priceCents: variantPrice, active: v.active, sortOrder: i });
+    }
+  } catch {
+    return { error: "Liste des goûts invalide." };
+  }
+  if (new Set(variants.map((v) => v.name.toLowerCase())).size !== variants.length)
+    return { error: "Deux goûts portent le même nom." };
+
+  await db.$transaction(async (tx) => {
+    const product = id
+      ? await tx.product.update({ where: { id }, data })
+      : await tx.product.create({ data: { ...data, imageVersion: data.imageData ? 1 : 0 } });
+    const keep = variants.filter((v) => v.id).map((v) => v.id!);
+    // Les goûts retirés sont supprimés ; les commandes passées gardent leur nom (variantName).
+    await tx.productVariant.deleteMany({ where: { productId: product.id, id: { notIn: keep } } });
+    for (const v of variants) {
+      const values = { name: v.name, priceCents: v.priceCents, active: v.active, sortOrder: v.sortOrder };
+      if (v.id) await tx.productVariant.update({ where: { id: v.id, productId: product.id }, data: values });
+      else await tx.productVariant.create({ data: { ...values, productId: product.id } });
+    }
+  });
 
   revalidatePath("/", "layout");
   redirect("/admin/produits");

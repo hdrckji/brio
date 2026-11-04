@@ -5,7 +5,16 @@ import { formatPrice } from "@/lib/format";
 export default async function ProductsPage() {
   const products = await db.product.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, priceCents: true, active: true, imageMime: true, imageVersion: true, sortOrder: true },
+    select: {
+      id: true,
+      name: true,
+      priceCents: true,
+      active: true,
+      imageMime: true,
+      imageVersion: true,
+      sortOrder: true,
+      variants: { where: { active: true }, orderBy: { sortOrder: "asc" }, select: { name: true } },
+    },
   });
   return (
     <div className="space-y-4">
@@ -40,6 +49,7 @@ export default async function ProductsPage() {
                 </td>
                 <td className="px-4 py-2">
                   <Link href={`/admin/produits/${p.id}`} className="font-medium text-pervenche hover:underline">{p.name}</Link>
+                  {p.variants.length > 0 && <div className="text-xs text-chocolat/75">{p.variants.map((v) => v.name).join(", ")}</div>}
                 </td>
                 <td className="px-4 py-2 text-right">{formatPrice(p.priceCents)}</td>
                 <td className="px-4 py-2">{p.sortOrder}</td>

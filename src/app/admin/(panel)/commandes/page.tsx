@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Prisma } from "@/generated/prisma/client";
 import { PaymentBadge, StatusBadge } from "@/components/badges";
 import { db } from "@/lib/db";
-import { formatDateTime, formatPrice, localToDate, ORDER_STATUS_LABELS } from "@/lib/format";
+import { ORDER_STATUS_LABELS, formatDateTime, formatPrice, itemLabel, localToDate } from "@/lib/format";
 import { releaseAbandonedOrders } from "@/lib/orders";
 
 export default async function OrdersPage({ searchParams }: PageProps<"/admin/commandes">) {
@@ -117,7 +117,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/com
                   <div className="text-xs text-chocolat/75">{o.pickupSlot.pickupPoint.name}</div>
                 </td>
                 <td className="px-4 py-2 text-xs">
-                  {o.items.map((i) => `${i.quantity}× ${i.productName}`).join(", ")}
+                  {o.items.map((i) => `${i.quantity}× ${itemLabel(i)}`).join(", ")}
                 </td>
                 <td className="px-4 py-2 text-right">{formatPrice(o.totalCents)}</td>
                 <td className="px-4 py-2"><StatusBadge status={o.status} /></td>

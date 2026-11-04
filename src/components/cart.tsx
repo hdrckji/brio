@@ -2,20 +2,33 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type CartLine = { productId: string; name: string; priceCents: number; quantity: number };
+/** Une ligne = un produit dans une déclinaison donnée (ex. cougnou chocolat). */
+export type CartLine = {
+  key: string;
+  productId: string;
+  variantId: string | null;
+  name: string;
+  priceCents: number;
+  quantity: number;
+};
+
+type NewLine = Omit<CartLine, "key" | "quantity">;
 
 type CartContextValue = {
   lines: CartLine[];
   count: number;
   totalCents: number;
   ready: boolean;
-  add: (p: Omit<CartLine, "quantity">, qty?: number) => void;
-  setQuantity: (productId: string, qty: number) => void;
+  add: (p: NewLine, qty?: number) => void;
+  setQuantity: (key: string, qty: number) => void;
   clear: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const KEY = "brio-cart-v1";
+// v2 : ajout des déclinaisons (les paniers v1 sont abandonnés)
+const KEY = "coukiz-cart-v2";
+
+export const lineKey = (productId: string, variantId: string | null) => `${productId}:${variantId ?? ""}`;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -37,17 +50,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [lines, ready]);
 
-  const add = useCallback((p: Omit<CartLine, "quantity">, qty = 1) => {
+  const add = useCallback((p: NewLine, qty = 1) => {
+    const key = lineKey(p.productId, p.variantId);
     setLines((prev) => {
-      const existing = prev.find((l) => l.productId === p.productId);
-      if (existing) return prev.map((l) => (l.productId === p.productId ? { ...l, ...p, quantity: Math.min(99, l.quantity + qty) } : l));
-      return [...prev, { ...p, quantity: qty }];
+      const existing = prev.find((l) => l.key === key);
+      if (existing) return prev.map((l) => (l.key === key ? { ...l, ...p, quantity: Math.min(99, l.quantity + qty) } : l));
+      return [...prev, { ...p, key, quantity: qty }];
     });
   }, []);
 
-  const setQuantity = useCallback((productId: string, qty: number) => {
+  const setQuantity = useCallback((key: string, qty: number) => {
     setLines((prev) =>
-      qty <= 0 ? prev.filter((l) => l.productId !== productId) : prev.map((l) => (l.productId === productId ? { ...l, quantity: Math.min(99, qty) } : l)),
+      qty <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(99, qty) } : l)),
     );
   }, []);
 

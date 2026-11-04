@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { itemLabel } from "@/lib/format";
 import { createOrder, OrderError, STRIPE_HOLD_MINUTES } from "@/lib/orders";
 import { enabledPaymentMethods, getSettings } from "@/lib/settings";
 import { getStripe } from "@/lib/stripe";
@@ -16,7 +17,7 @@ const schema = z.object({
   pickupSlotId: z.string().min(1, "Merci de choisir un créneau de retrait."),
   paymentMethod: z.enum(["STRIPE", "TRANSFER", "CASH"], "Merci de choisir un mode de paiement."),
   items: z
-    .array(z.object({ productId: z.string().min(1), quantity: z.number().int().min(1).max(99) }))
+    .array(z.object({ productId: z.string().min(1), variantId: z.string().min(1).nullish(), quantity: z.number().int().min(1).max(99) }))
     .min(1, "Votre panier est vide."),
 });
 
@@ -75,7 +76,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       metadata: { orderId: order.id, reference: order.reference },
       line_items: order.items.map((i) => ({
         quantity: i.quantity,
-        price_data: { currency: "eur", unit_amount: i.unitPriceCents, product_data: { name: i.productName } },
+        price_data: { currency: "eur", unit_amount: i.unitPriceCents, product_data: { name: itemLabel(i) } },
       })),
       expires_at: Math.floor(Date.now() / 1000) + (STRIPE_HOLD_MINUTES - 5) * 60,
       success_url: `${url}/commande/${order.id}?session_id={CHECKOUT_SESSION_ID}`,

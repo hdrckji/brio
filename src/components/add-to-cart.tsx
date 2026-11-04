@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "./cart";
+import { formatPrice } from "@/lib/format";
+import { lineKey, useCart } from "./cart";
 
 export function QuantityStepper({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
   return (
@@ -19,28 +20,93 @@ export function QuantityStepper({ value, onChange, label }: { value: number; onC
   );
 }
 
-export function AddToCart({ productId, name, priceCents }: { productId: string; name: string; priceCents: number }) {
+export type Variant = { id: string; name: string; priceCents: number };
+
+export function AddToCart({
+  productId,
+  name,
+  priceCents,
+  variants,
+}: {
+  productId: string;
+  name: string;
+  priceCents: number;
+  variants: Variant[];
+}) {
   const { add, lines } = useCart();
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
-  const inCart = lines.find((l) => l.productId === productId)?.quantity ?? 0;
+  const [variantId, setVariantId] = useState<string | null>(variants.length === 1 ? variants[0].id : null);
+  const [added, setAdded] = useState<string | null>(null);
+  const [missingChoice, setMissingChoice] = useState(false);
+
+  const hasVariants = variants.length > 0;
+  const variant = variants.find((v) => v.id === variantId) ?? null;
+  // Prix affiché à côté d'un goût seulement s'ils ne coûtent pas tous pareil
+  const pricesDiffer = new Set(variants.map((v) => v.priceCents)).size > 1;
+  const inCart = lines.filter((l) => l.productId === productId).reduce((s, l) => s + l.quantity, 0);
+  const groupId = `gout-${productId}`;
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <QuantityStepper value={qty} onChange={(v) => setQty(Math.min(99, Math.max(1, v)))} label={name} />
-      <button
-        type="button"
-        className="btn"
-        onClick={() => {
-          add({ productId, name, priceCents }, qty);
-          setAdded(true);
-          setQty(1);
-          setTimeout(() => setAdded(false), 1800);
-        }}
-      >
-        {added ? "Ajouté au panier" : "Ajouter au panier"}
-      </button>
-      {inCart > 0 && <span className="text-sm text-chocolat/75">{inCart} dans votre panier</span>}
+    <div className="space-y-4">
+      {hasVariants && (
+        <fieldset>
+          <legend id={groupId} className="mb-2 text-sm font-medium">
+            Choisissez le goût
+          </legend>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby={groupId}>
+            {variants.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                role="radio"
+                aria-checked={variantId === v.id}
+                onClick={() => {
+                  setVariantId(v.id);
+                  setMissingChoice(false);
+                }}
+                className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${variantId === v.id ? "border-chocolat bg-chocolat text-white" : "border-cacao/40 bg-papier hover:border-chocolat"}`}
+              >
+                {v.name}
+                {pricesDiffer && <span className={variantId === v.id ? "text-white/80" : "text-chocolat/70"}> {formatPrice(v.priceCents)}</span>}
+              </button>
+            ))}
+          </div>
+          {missingChoice && (
+            <p role="alert" className="mt-2 text-sm text-red-800">
+              Choisissez d&apos;abord un goût.
+            </p>
+          )}
+        </fieldset>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3">
+        <QuantityStepper value={qty} onChange={(v) => setQty(Math.min(99, Math.max(1, v)))} label={name} />
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            if (hasVariants && !variant) {
+              setMissingChoice(true);
+              return;
+            }
+            add(
+              {
+                productId,
+                variantId: variant?.id ?? null,
+                name: variant ? `${name} (${variant.name})` : name,
+                priceCents: variant?.priceCents ?? priceCents,
+              },
+              qty,
+            );
+            setAdded(lineKey(productId, variant?.id ?? null));
+            setQty(1);
+            setTimeout(() => setAdded(null), 1800);
+          }}
+        >
+          {added ? "Ajouté au panier" : "Ajouter au panier"}
+        </button>
+        {inCart > 0 && <span className="text-sm text-chocolat/75">{inCart} dans votre panier</span>}
+      </div>
     </div>
   );
 }

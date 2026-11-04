@@ -18,7 +18,17 @@ export default async function EditProduct({ params }: PageProps<"/admin/produits
   }
   const product = await db.product.findUnique({
     where: { id },
-    select: { id: true, name: true, description: true, priceCents: true, sortOrder: true, active: true, imageMime: true, imageVersion: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      priceCents: true,
+      sortOrder: true,
+      active: true,
+      imageMime: true,
+      imageVersion: true,
+      variants: { orderBy: [{ sortOrder: "asc" }, { name: "asc" }], select: { id: true, name: true, priceCents: true, active: true } },
+    },
   });
   if (!product) notFound();
   return (

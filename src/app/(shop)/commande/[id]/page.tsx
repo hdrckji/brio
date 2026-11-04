@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ClearCart } from "@/components/clear-cart";
 import { db } from "@/lib/db";
 import { fullOrderInclude } from "@/lib/emails";
-import { formatPrice, formatSlot, PAYMENT_LABELS } from "@/lib/format";
+import { PAYMENT_LABELS, formatPrice, formatSlot, itemLabel } from "@/lib/format";
 import { markStripeOrderPaid } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 import { getStripe } from "@/lib/stripe";
@@ -97,7 +97,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/co
           {order.items.map((i) => (
             <li key={i.id} className="flex items-end">
               <span>
-                {i.quantity} × {i.productName}
+                {i.quantity} × {itemLabel(i)}
               </span>
               <span className="leader" aria-hidden />
               <span>{formatPrice(i.quantity * i.unitPriceCents)}</span>

@@ -10,7 +10,15 @@ export default async function HomePage() {
     db.product.findMany({
       where: { active: true },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, description: true, priceCents: true, imageMime: true, imageVersion: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        priceCents: true,
+        imageMime: true,
+        imageVersion: true,
+        variants: { where: { active: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }], select: { id: true, name: true, priceCents: true } },
+      },
     }),
   ]);
   const open = settings.shopOpen === "true";
@@ -39,27 +47,35 @@ export default async function HomePage() {
         ) : (
           <ul className="mt-6 divide-y divide-cacao/20 border-y border-cacao/20">
             {products.map((p) => (
-              <li key={p.id} className={`grid gap-x-6 gap-y-4 py-7 ${hasImages ? "sm:grid-cols-[8rem_1fr]" : ""}`}>
+              <li key={p.id} className={`grid gap-x-8 gap-y-5 py-8 ${hasImages ? "sm:grid-cols-[13rem_1fr]" : ""}`}>
                 {p.imageMime ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`/api/products/${p.id}/image?v=${p.imageVersion}`}
-                    alt=""
-                    className="medaillon aspect-square w-full max-w-[8rem] object-cover"
-                  />
+                  <div className="cadre-photo">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- image servie depuis la base, déjà mise en cache */}
+                    <img
+                      src={`/api/products/${p.id}/image?v=${p.imageVersion}`}
+                      alt={p.name}
+                      loading="lazy"
+                      className="aspect-[4/3] w-full rounded-xl object-cover sm:aspect-square"
+                    />
+                  </div>
                 ) : (
-                  hasImages && <div className="hidden sm:block" />
+                  hasImages && (
+                    // Pas encore de photo : l'illustration gravée du logo, pour garder la carte alignée
+                    <div className="cadre-photo hidden sm:block">
+                      <Image src="/illustration-biscuits.webp" alt="" width={420} height={420} className="aspect-square w-full rounded-xl" />
+                    </div>
+                  )
                 )}
                 <div className="min-w-0">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:gap-0">
                     <h3 className="font-display text-2xl leading-tight">{p.name}</h3>
                     <span className="leader hidden sm:block" aria-hidden />
-                    <span className="text-lg font-medium text-pervenche">{formatPrice(p.priceCents)}</span>
+                    <span className="text-lg font-medium whitespace-nowrap text-pervenche">{priceLabel(p)}</span>
                   </div>
                   {p.description && <p className="mt-1 max-w-prose whitespace-pre-line text-chocolat/80">{p.description}</p>}
                   {open && (
                     <div className="mt-4">
-                      <AddToCart productId={p.id} name={p.name} priceCents={p.priceCents} />
+                      <AddToCart productId={p.id} name={p.name} priceCents={p.priceCents} variants={variantsOf(p)} />
                     </div>
                   )}
                 </div>
@@ -70,4 +86,18 @@ export default async function HomePage() {
       </section>
     </div>
   );
+}
+
+type ProductWithVariants = { priceCents: number; variants: { id: string; name: string; priceCents: number | null }[] };
+
+/** Prix effectif de chaque déclinaison (son prix propre, sinon celui du produit). */
+function variantsOf(p: ProductWithVariants) {
+  return p.variants.map((v) => ({ id: v.id, name: v.name, priceCents: v.priceCents ?? p.priceCents }));
+}
+
+function priceLabel(p: ProductWithVariants) {
+  const prices = variantsOf(p).map((v) => v.priceCents);
+  if (prices.length === 0) return formatPrice(p.priceCents);
+  const min = Math.min(...prices);
+  return Math.max(...prices) > min ? `dès ${formatPrice(min)}` : formatPrice(min);
 }

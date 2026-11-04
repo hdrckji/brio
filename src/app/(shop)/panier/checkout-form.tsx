@@ -56,7 +56,7 @@ export function CheckoutForm({
 
   return (
     <form action={action} className="grid items-start gap-10 lg:grid-cols-[1fr_360px]">
-      <input type="hidden" name="items" value={JSON.stringify(cart.lines.map((l) => ({ productId: l.productId, quantity: l.quantity })))} />
+      <input type="hidden" name="items" value={JSON.stringify(cart.lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })))} />
       <input type="hidden" name="pickupSlotId" value={slotId} />
       <input type="hidden" name="paymentMethod" value={payment} />
 
@@ -167,14 +167,14 @@ export function CheckoutForm({
           <h2 className="text-center font-display text-3xl leading-none">Votre commande</h2>
           <ul className="mt-5 space-y-4">
             {cart.lines.map((l) => (
-              <li key={l.productId}>
+              <li key={l.key}>
                 <div className="flex items-end">
                   <span className="font-medium">{l.name}</span>
                   <span className="leader" aria-hidden />
                   <span>{formatPrice(l.priceCents * l.quantity)}</span>
                 </div>
                 <div className="mt-2 flex items-center gap-3 text-sm">
-                  <QuantityStepper value={l.quantity} onChange={(v) => cart.setQuantity(l.productId, v)} label={l.name} />
+                  <QuantityStepper value={l.quantity} onChange={(v) => cart.setQuantity(l.key, v)} label={l.name} />
                   <span className="text-chocolat/75">{formatPrice(l.priceCents)} pièce</span>
                 </div>
               </li>
