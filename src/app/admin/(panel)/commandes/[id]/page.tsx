@@ -18,7 +18,7 @@ export default async function OrderDetail({ params }: PageProps<"/admin/commande
     <div className="space-y-6">
       <Link href="/admin/commandes" className="text-sm text-sapin/75 hover:text-sapin">Toutes les commandes</Link>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-display text-5xl leading-none">{order.reference}</h1>
+        <h1 className="text-4xl font-bold">{order.reference}</h1>
         <StatusBadge status={order.status} />
         <PaymentBadge method={order.paymentMethod} status={order.paymentStatus} />
       </div>
