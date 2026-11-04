@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String      @default("")
+  priceCents  Int
+  active      Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  imageData   Bytes?
+  imageMime   String?
+  imageVersion Int        @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model PickupPoint {
+  id        String       @id @default(cuid())
+  name      String
+  address   String
+  details   String       @default("")
+  active    Boolean      @default(true)
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  slots     PickupSlot[]
+}
+
+model PickupSlot {
+  id            String      @id @default(cuid())
+  pickupPointId String
+  pickupPoint   PickupPoint @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
+  startsAt      DateTime
+  endsAt        DateTime
+  capacity      Int
+  active        Boolean     @default(true)
+  orders        Order[]
+
+  @@index([pickupPointId, startsAt])
+}
+
+enum PaymentMethod {
+  STRIPE
+  TRANSFER
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum OrderStatus {
+  AWAITING_PAYMENT // Stripe : en attente du paiement en ligne
+  CONFIRMED
+  READY
+  PICKED_UP
+  CANCELLED
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  reference       String        @unique
+  customerName    String
+  email           String
+  phone           String
+  note            String        @default("")
+  pickupSlotId    String
+  pickupSlot      PickupSlot    @relation(fields: [pickupSlotId], references: [id], onDelete: Restrict)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  status          OrderStatus
+  totalCents      Int
+  stripeSessionId String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           OrderItem[]
+
+  @@index([status])
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName    String
+  unitPriceCents Int
+  quantity       Int
+}
+
+model Setting {
+  key   String @id
+  value String
+}

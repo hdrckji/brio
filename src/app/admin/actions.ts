@@ -1,0 +1,255 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import type { OrderStatus } from "@/generated/prisma/client";
+import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { fullOrderInclude, sendOrderCancelled, sendOrderReady } from "@/lib/emails";
+import { localToDate } from "@/lib/format";
+import { markOrderPaidManually } from "@/lib/orders";
+import { saveSettings, SETTING_DEFAULTS, type SettingKey } from "@/lib/settings";
+
+export type FormState = { error?: string; ok?: string } | null;
+
+/* ---------- Authentification ---------- */
+
+export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
+  if (!process.env.ADMIN_PASSWORD) return { error: "ADMIN_PASSWORD n'est pas configuré sur le serveur." };
+  if (!checkPassword(String(formData.get("password") ?? ""))) return { error: "Mot de passe incorrect." };
+  await createSession();
+  redirect("/admin");
+}
+
+export async function logout() {
+  await destroySession();
+  redirect("/admin/login");
+}
+
+/* ---------- Produits ---------- */
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function parsePrice(raw: FormDataEntryValue | null) {
+  const n = Number(String(raw ?? "").replace(",", ".").trim());
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : null;
+}
+
+export async function saveProduct(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const priceCents = parsePrice(formData.get("price"));
+  if (!name) return { error: "Le nom est obligatoire." };
+  if (priceCents === null) return { error: "Prix invalide." };
+
+  const data: {
+    name: string;
+    description: string;
+    priceCents: number;
+    sortOrder: number;
+    active: boolean;
+    imageData?: Uint8Array<ArrayBuffer> | null;
+    imageMime?: string | null;
+    imageVersion?: { increment: number };
+  } = {
+    name,
+    priceCents,
+    description: String(formData.get("description") ?? "").trim(),
+    sortOrder: Number(formData.get("sortOrder") || 0) || 0,
+    active: formData.get("active") === "on",
+  };
+
+  const image = formData.get("image");
+  if (image instanceof File && image.size > 0) {
+    if (!image.type.startsWith("image/")) return { error: "Le fichier doit être une image." };
+    if (image.size > MAX_IMAGE_BYTES) return { error: "Image trop lourde (5 Mo max)." };
+    data.imageData = new Uint8Array(await image.arrayBuffer());
+    data.imageMime = image.type;
+    data.imageVersion = { increment: 1 };
+  } else if (formData.get("removeImage") === "on") {
+    data.imageData = null;
+    data.imageMime = null;
+    data.imageVersion = { increment: 1 };
+  }
+
+  if (id) await db.product.update({ where: { id }, data });
+  else await db.product.create({ data: { ...data, imageVersion: data.imageData ? 1 : 0 } });
+
+  revalidatePath("/", "layout");
+  redirect("/admin/produits");
+}
+
+export async function deleteProduct(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  // Les lignes de commande gardent le nom et le prix ; le lien produit passe à null.
+  await db.product.delete({ where: { id } });
+  revalidatePath("/", "layout");
+  redirect("/admin/produits");
+}
+
+/* ---------- Points de retrait ---------- */
+
+export async function savePickupPoint(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const data = {
+    name: String(formData.get("name") ?? "").trim(),
+    address: String(formData.get("address") ?? "").trim(),
+    details: String(formData.get("details") ?? "").trim(),
+    sortOrder: Number(formData.get("sortOrder") || 0) || 0,
+    active: formData.get("active") === "on",
+  };
+  if (!data.name || !data.address) return { error: "Nom et adresse sont obligatoires." };
+  if (id) {
+    await db.pickupPoint.update({ where: { id }, data });
+    revalidatePath(`/admin/points/${id}`);
+    return { ok: "Point de retrait enregistré." };
+  }
+  const created = await db.pickupPoint.create({ data });
+  redirect(`/admin/points/${created.id}`);
+}
+
+export async function deletePickupPoint(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const orders = await db.order.count({ where: { pickupSlot: { pickupPointId: id } } });
+  if (orders > 0) {
+    // On ne supprime pas l'historique : on désactive.
+    await db.pickupPoint.update({ where: { id }, data: { active: false } });
+  } else {
+    await db.pickupPoint.delete({ where: { id } });
+  }
+  redirect("/admin/points");
+}
+
+const slotGenSchema = z.object({
+  pickupPointId: z.string().min(1),
+  fromDay: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date de début invalide."),
+  toDay: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date de fin invalide."),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure de début invalide."),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure de fin invalide."),
+  duration: z.coerce.number().int().min(5, "Durée minimum : 5 minutes.").max(24 * 60),
+  capacity: z.coerce.number().int().min(1, "Capacité minimum : 1."),
+  weekdays: z.array(z.coerce.number().int().min(0).max(6)).min(1, "Choisissez au moins un jour."),
+});
+
+export async function generateSlots(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const parsed = slotGenSchema.safeParse({
+    pickupPointId: formData.get("pickupPointId"),
+    fromDay: formData.get("fromDay"),
+    toDay: formData.get("toDay") || formData.get("fromDay"),
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
+    duration: formData.get("duration"),
+    capacity: formData.get("capacity"),
+    weekdays: formData.getAll("weekdays"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  const v = parsed.data;
+  if (v.toDay < v.fromDay) return { error: "La date de fin est avant la date de début." };
+  if (v.endTime <= v.startTime) return { error: "L'heure de fin doit être après l'heure de début." };
+
+  const slots: { pickupPointId: string; startsAt: Date; endsAt: Date; capacity: number }[] = [];
+  const day = new Date(`${v.fromDay}T12:00:00Z`);
+  const last = new Date(`${v.toDay}T12:00:00Z`);
+  const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+  const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+  for (; day <= last; day.setUTCDate(day.getUTCDate() + 1)) {
+    if (!v.weekdays.includes(day.getUTCDay())) continue;
+    const d = day.toISOString().slice(0, 10);
+    for (let m = toMin(v.startTime); m + v.duration <= toMin(v.endTime); m += v.duration) {
+      slots.push({
+        pickupPointId: v.pickupPointId,
+        startsAt: localToDate(d, fmt(m)),
+        endsAt: localToDate(d, fmt(m + v.duration)),
+        capacity: v.capacity,
+      });
+    }
+    if (slots.length > 2000) return { error: "Trop de créneaux d'un coup (max 2000)." };
+  }
+  if (slots.length === 0) return { error: "Aucun créneau généré avec ces paramètres." };
+
+  // Évite les doublons exacts déjà existants
+  const existing = await db.pickupSlot.findMany({
+    where: { pickupPointId: v.pickupPointId, startsAt: { in: slots.map((s) => s.startsAt) } },
+    select: { startsAt: true },
+  });
+  const taken = new Set(existing.map((e) => e.startsAt.getTime()));
+  const fresh = slots.filter((s) => !taken.has(s.startsAt.getTime()));
+  await db.pickupSlot.createMany({ data: fresh });
+  revalidatePath(`/admin/points/${v.pickupPointId}`);
+  return { ok: `${fresh.length} créneau(x) créé(s)${fresh.length < slots.length ? `, ${slots.length - fresh.length} doublon(s) ignoré(s)` : ""}.` };
+}
+
+export async function updateSlot(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const capacity = Number(formData.get("capacity"));
+  const active = formData.get("active") === "on";
+  const slot = await db.pickupSlot.update({
+    where: { id },
+    data: { ...(Number.isInteger(capacity) && capacity >= 0 ? { capacity } : {}), active },
+  });
+  revalidatePath(`/admin/points/${slot.pickupPointId}`);
+}
+
+export async function deleteSlot(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const slot = await db.pickupSlot.findUniqueOrThrow({ where: { id }, include: { _count: { select: { orders: true } } } });
+  if (slot._count.orders > 0) await db.pickupSlot.update({ where: { id }, data: { active: false } });
+  else await db.pickupSlot.delete({ where: { id } });
+  revalidatePath(`/admin/points/${slot.pickupPointId}`);
+}
+
+/* ---------- Commandes ---------- */
+
+export async function setOrderStatus(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const status = String(formData.get("status")) as OrderStatus;
+  const notify = formData.get("notify") === "on";
+  if (!["CONFIRMED", "READY", "PICKED_UP", "CANCELLED"].includes(status)) return;
+  const order = await db.order.update({ where: { id }, data: { status }, include: fullOrderInclude });
+  if (notify && status === "READY") await sendOrderReady(order);
+  if (notify && status === "CANCELLED") await sendOrderCancelled(order);
+  revalidatePath(`/admin/commandes/${id}`);
+}
+
+export async function markPaid(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await markOrderPaidManually(id);
+  revalidatePath(`/admin/commandes/${id}`);
+}
+
+export async function markPickedUpAndPaid(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  await db.order.update({ where: { id }, data: { status: "PICKED_UP", paymentStatus: "PAID" } });
+  revalidatePath(`/admin/commandes/${id}`);
+}
+
+/* ---------- Paramètres ---------- */
+
+const BOOL_KEYS: SettingKey[] = ["shopOpen", "paymentStripe", "paymentTransfer", "paymentCash"];
+
+export async function updateSettings(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const values: Partial<Record<SettingKey, string>> = {};
+  for (const key of Object.keys(SETTING_DEFAULTS) as SettingKey[]) {
+    if (BOOL_KEYS.includes(key)) values[key] = formData.get(key) === "on" ? "true" : "false";
+    else values[key] = String(formData.get(key) ?? "").trim();
+  }
+  const lead = Number(values.leadTimeHours);
+  if (!Number.isFinite(lead) || lead < 0) return { error: "Délai minimum invalide." };
+  if (!values.shopName) return { error: "Le nom de la boutique est obligatoire." };
+  await saveSettings(values);
+  revalidatePath("/", "layout");
+  return { ok: "Paramètres enregistrés." };
+}
