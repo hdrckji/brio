@@ -47,7 +47,7 @@ export default async function HomePage() {
         ) : (
           <ul className="mt-6 divide-y divide-cacao/20 border-y border-cacao/20">
             {products.map((p) => (
-              <li key={p.id} className={`grid gap-x-8 gap-y-5 py-8 ${hasImages ? "sm:grid-cols-[13rem_1fr]" : ""}`}>
+              <li key={p.id} className={`grid gap-x-8 gap-y-5 py-8 ${hasImages ? "sm:grid-cols-[15rem_1fr]" : ""}`}>
                 {p.imageMime ? (
                   <div className="cadre-photo">
                     {/* eslint-disable-next-line @next/next/no-img-element -- image servie depuis la base, déjà mise en cache */}
@@ -55,14 +55,14 @@ export default async function HomePage() {
                       src={`/api/products/${p.id}/image?v=${p.imageVersion}`}
                       alt={p.name}
                       loading="lazy"
-                      className="aspect-[4/3] w-full rounded-xl object-cover sm:aspect-square"
+                      className="aspect-[3/2] w-full rounded-xl bg-white object-contain"
                     />
                   </div>
                 ) : (
                   hasImages && (
                     // Pas encore de photo : l'illustration gravée du logo, pour garder la carte alignée
                     <div className="cadre-photo hidden sm:block">
-                      <Image src="/illustration-biscuits.webp" alt="" width={420} height={420} className="aspect-square w-full rounded-xl" />
+                      <Image src="/illustration-biscuits.webp" alt="" width={420} height={420} className="aspect-[3/2] w-full rounded-xl object-contain" />
                     </div>
                   )
                 )}

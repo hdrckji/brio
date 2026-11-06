@@ -56,7 +56,7 @@ export function ProductForm({ product }: { product?: Product }) {
           </div>
         )}
         <input className="input" id="image" name="image" type="file" accept="image/*" />
-        <p className="mt-1 text-xs text-chocolat/75">JPG, PNG ou WebP, 5 Mo maximum. Le produit bien centré : la photo est recadrée en carré sur ordinateur et en paysage sur mobile.</p>
+        <p className="mt-1 text-xs text-chocolat/75">JPG, PNG ou WebP, 5 Mo maximum. La photo est affichée en entier ; le format paysage (3:2) remplit parfaitement le cadre.</p>
       </div>
       <VariantsEditor
         initial={(product?.variants ?? []).map(
