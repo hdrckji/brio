@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Administration Coukiz" };
+export const metadata = { title: "Administration Biscotte" };
 
 const NAV = [
   { href: "/admin", label: "Tableau de bord" },
@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <div className="rayures h-2" aria-hidden />
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2">
-            <Image src="/logo-medaillon.webp" alt="" width={716} height={732} priority className="h-11 w-auto" />
+            <Image src="/logo-biscotte.webp" alt="" width={716} height={732} priority className="h-11 w-auto" />
             <span className="text-sm text-chocolat/75">Administration</span>
           </Link>
           <nav className="flex flex-1 flex-wrap gap-1 text-sm">

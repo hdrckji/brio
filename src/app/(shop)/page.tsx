@@ -33,7 +33,7 @@ export default async function HomePage() {
         <p className="mx-auto mt-4 max-w-md text-chocolat/80">
           Commandez au plus tard {settings.leadTimeHours} heures avant le retrait, puis passez chercher votre commande au point de retrait choisi.
         </p>
-        <Image src="/ornement-noeud.png" alt="" width={270} height={70} className="mx-auto mt-8 w-44" />
+        <Image src="/ornement-noeud-biscotte.png" alt="" width={263} height={62} className="mx-auto mt-8 w-44" />
       </section>
 
       {!open && <p className="mt-10 rounded-lg border-2 border-dotted border-cacao/50 px-5 py-4 text-center text-lg">{settings.closedMessage}</p>}
@@ -62,7 +62,7 @@ export default async function HomePage() {
                   hasImages && (
                     // Pas encore de photo : l'illustration gravée du logo, pour garder la carte alignée
                     <div className="cadre-photo hidden sm:block">
-                      <Image src="/illustration-biscuits.webp" alt="" width={420} height={420} className="aspect-[3/2] w-full rounded-xl object-contain" />
+                      <Image src="/illustration-biscotte.webp" alt="" width={582} height={388} className="aspect-[3/2] w-full rounded-xl object-contain" />
                     </div>
                   )
                 )}

@@ -8,7 +8,7 @@ export default async function ShopLayout({ children }: LayoutProps<"/">) {
   const settings = await getSettings();
   return (
     <CartProvider>
-      {/* Fond rayé du visuel Coukiz sur toute la page, le contenu est posé dessus comme une étiquette */}
+      {/* Fond rayé du visuel Biscotte sur toute la page, le contenu est posé dessus comme une étiquette */}
       <div className="rayures flex min-h-screen flex-col pb-6">
         <SiteHeader shopName={settings.shopName} />
         <main className="etiquette mx-auto mt-6 w-[calc(100%-1.5rem)] max-w-4xl flex-1 px-5 pt-14 pb-14 sm:mt-8 sm:w-[calc(100%-4rem)] sm:px-12">

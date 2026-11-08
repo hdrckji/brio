@@ -7,7 +7,7 @@ import { markStripeOrderPaid } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 import { getStripe } from "@/lib/stripe";
 
-export const metadata = { title: "Ma commande, Coukiz" };
+export const metadata = { title: "Ma commande, Biscotte" };
 
 const STATUS_TEXT = {
   AWAITING_PAYMENT: "en attente de la confirmation du paiement",

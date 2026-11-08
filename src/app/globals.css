@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Identité Coukiz, tirée du logo */
+  /* Identité Biscotte, tirée du logo */
   --color-creme: #fbefe3; /* fond, intérieur du médaillon */
   --color-papier: #fffaf4; /* champs et surfaces */
   --color-chocolat: #5c3122; /* texte, boutons */

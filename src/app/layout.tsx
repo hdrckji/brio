@@ -6,7 +6,7 @@ const body = Jost({ variable: "--font-body", subsets: ["latin", "latin-ext"] });
 const roman = Gilda_Display({ variable: "--font-roman", weight: "400", subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
-  title: "Coukiz, biscuits de Noël",
+  title: "Biscotte, biscuits de Noël",
   description: "Commandez vos biscuits et douceurs de Noël et retirez-les au point de retrait de votre choix.",
 };
 

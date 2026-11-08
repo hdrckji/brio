@@ -2,7 +2,7 @@ import { getBookableSlots } from "@/lib/orders";
 import { enabledPaymentMethods, getSettings } from "@/lib/settings";
 import { CheckoutForm } from "./checkout-form";
 
-export const metadata = { title: "Panier, Coukiz" };
+export const metadata = { title: "Panier, Biscotte" };
 
 export default async function CartPage({ searchParams }: PageProps<"/panier">) {
   const [settings, points, sp] = await Promise.all([getSettings(), getBookableSlots(), searchParams]);

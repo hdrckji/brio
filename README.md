@@ -1,4 +1,4 @@
-# Brio — boutique de Noël Coukiz (retrait uniquement)
+# Brio — boutique de Noël Biscotte (retrait uniquement)
 
 Site de commande en ligne pour une boulangerie : peu de références, **aucune livraison**, retrait sur un créneau dans un point de retrait.
 

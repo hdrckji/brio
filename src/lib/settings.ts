@@ -1,7 +1,7 @@
 import { db } from "./db";
 
 export const SETTING_DEFAULTS = {
-  shopName: "Coukiz",
+  shopName: "Biscotte",
   shopTagline: "Biscuits et douceurs de Noël, à commander en ligne et à retirer sur place.",
   shopOpen: "true",
   closedMessage: "Les commandes sont fermées pour le moment. Revenez bientôt !",
