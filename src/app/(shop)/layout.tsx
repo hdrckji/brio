@@ -15,7 +15,7 @@ export default async function ShopLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <footer className="mx-auto mt-6 w-fit max-w-[calc(100%-1.5rem)] rounded-full bg-creme px-5 py-2 text-center text-sm">
-          {settings.shopName}. Pas de livraison : toutes les commandes se retirent sur place.
+          {settings.shopName}. Pas de livraison : toutes les commandes se retirent en point de retrait.
         </footer>
       </div>
     </CartProvider>

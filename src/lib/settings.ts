@@ -2,7 +2,7 @@ import { db } from "./db";
 
 export const SETTING_DEFAULTS = {
   shopName: "Biscotte",
-  shopTagline: "Biscuits et douceurs de Noël, à commander en ligne et à retirer sur place.",
+  shopTagline: "Biscuits et douceurs de Noël, à commander en ligne et à retirer en point de retrait.",
   shopOpen: "true",
   closedMessage: "Les commandes sont fermées pour le moment. Revenez bientôt !",
   leadTimeHours: "24",
