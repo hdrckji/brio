@@ -94,7 +94,9 @@ export function CheckoutForm({
             <p className="text-chocolat/75">Plus aucun créneau n&apos;est disponible à {point.name}. Essayez un autre point de retrait.</p>
           ) : (
             <div className="space-y-5" role="radiogroup" aria-label="Créneau de retrait">
-              <p className="text-sm text-chocolat/75">Seuls les créneaux à plus de {leadTimeHours} heures sont proposés.</p>
+              <p className="text-sm text-chocolat/75">
+                Seuls les créneaux à plus de {leadTimeHours} heures sont proposés. Votre commande est préparée le jour même du retrait.
+              </p>
               {slotsByDay.map((d) => (
                 <div key={d.label}>
                   <div className="mb-2 font-semibold first-letter:uppercase">{d.label}</div>
