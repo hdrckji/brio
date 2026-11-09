@@ -34,7 +34,7 @@ export default async function HomePage() {
           Commandez au plus tard {settings.leadTimeHours} heures avant le retrait, puis passez chercher votre commande au point de retrait choisi.
         </p>
         <p className="mx-auto mt-3 max-w-md text-chocolat/80">
-          Tout est préparé le jour même du retrait, pour une fraîcheur maximale. Nos produits se conservent ensuite très bien.
+          Tout est préparé le jour même du retrait, pour une fraîcheur maximale.{settings.conservation && ` ${settings.conservation}`}
         </p>
         <Image src="/ornement-noeud-biscotte.png" alt="" width={263} height={62} className="mx-auto mt-8 w-44" />
       </section>

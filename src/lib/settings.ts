@@ -6,6 +6,7 @@ export const SETTING_DEFAULTS = {
   shopOpen: "true",
   closedMessage: "Les commandes sont fermées pour le moment. Revenez bientôt !",
   leadTimeHours: "24",
+  conservation: "",
   notifyEmail: "",
   bankHolder: "",
   bankIban: "",

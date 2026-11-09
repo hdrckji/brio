@@ -57,7 +57,7 @@ export async function sendOrderConfirmation(order: FullOrder) {
   const s = await getSettings();
   const body = `<p>Bonjour ${esc(order.customerName)},</p><p>Merci pour votre commande ! Voici le récapitulatif.</p>
 ${summary(order)}${paymentInstructions(order, s)}
-<p>Votre commande sera préparée le jour même du retrait, pour une fraîcheur maximale. Nos produits se conservent ensuite très bien.</p>
+<p>Votre commande sera préparée le jour même du retrait, pour une fraîcheur maximale.${s.conservation ? ` ${esc(s.conservation)}` : ""}</p>
 <p><a href="${siteUrl()}/commande/${order.id}" style="color:#5c3122">Voir ma commande</a></p>`;
   await sendEmail(order.email, `Commande ${order.reference} confirmée`, layout(s, "Commande confirmée", body));
 

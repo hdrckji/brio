@@ -35,6 +35,19 @@ export default async function SettingsPage() {
             <label className="label" htmlFor="closedMessage">Message quand les commandes sont fermées</label>
             <textarea className="input" id="closedMessage" name="closedMessage" rows={2} defaultValue={s.closedMessage} />
           </div>
+          <div>
+            <label className="label" htmlFor="conservation">Conservation (facultatif)</label>
+            <input
+              className="input"
+              id="conservation"
+              name="conservation"
+              defaultValue={s.conservation}
+              placeholder="Ex. Nos produits se conservent 5 jours dans leur emballage, à température ambiante."
+            />
+            <p className="mt-1 text-xs text-chocolat/75">
+              Affiché sur l&apos;accueil et dans l&apos;email de confirmation, après « Tout est préparé le jour même du retrait, pour une fraîcheur maximale. »
+            </p>
+          </div>
           <div className="w-48">
             <label className="label" htmlFor="leadTimeHours">Délai minimum avant retrait (heures)</label>
             <input className="input" id="leadTimeHours" name="leadTimeHours" type="number" min={0} defaultValue={s.leadTimeHours} />
