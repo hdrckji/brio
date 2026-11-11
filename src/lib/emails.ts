@@ -1,6 +1,6 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
-import { sendEmail } from "./email";
+import { deliverEmail, sendEmail } from "./email";
 import { PAYMENT_LABELS, formatPrice, formatSlot, itemLabel } from "./format";
 import { getSettings, type Settings } from "./settings";
 
@@ -53,12 +53,16 @@ function paymentInstructions(order: FullOrder, s: Settings) {
 Titulaire : ${esc(s.bankHolder)}<br>IBAN : ${esc(s.bankIban)}<br>${s.bankBic ? `BIC : ${esc(s.bankBic)}<br>` : ""}Communication : <strong>${order.reference}</strong></p>`;
 }
 
-export async function sendOrderConfirmation(order: FullOrder) {
-  const s = await getSettings();
-  const body = `<p>Bonjour ${esc(order.customerName)},</p><p>Merci pour votre commande ! Voici le récapitulatif.</p>
+function confirmationBody(order: FullOrder, s: Settings) {
+  return `<p>Bonjour ${esc(order.customerName)},</p><p>Merci pour votre commande ! Voici le récapitulatif.</p>
 ${summary(order)}${paymentInstructions(order, s)}
 <p>Votre commande sera préparée le jour même du retrait, pour une fraîcheur maximale.${s.conservation ? ` ${esc(s.conservation)}` : ""}</p>
 <p><a href="${siteUrl()}/commande/${order.id}" style="color:#5c3122">Voir ma commande</a></p>`;
+}
+
+export async function sendOrderConfirmation(order: FullOrder) {
+  const s = await getSettings();
+  const body = confirmationBody(order, s);
   await sendEmail(order.email, `Commande ${order.reference} confirmée`, layout(s, "Commande confirmée", body));
 
   if (s.notifyEmail) {
@@ -85,4 +89,32 @@ export async function sendOrderCancelled(order: FullOrder) {
   const s = await getSettings();
   const body = `<p>Bonjour ${esc(order.customerName)},</p><p>Votre commande <strong>${order.reference}</strong> a été annulée. N'hésitez pas à nous contacter pour toute question.</p>`;
   await sendEmail(order.email, `Commande ${order.reference} annulée`, layout(s, "Commande annulée", body));
+}
+
+/** Mail test depuis l'admin : la vraie confirmation de commande, avec une commande fictive. Lève l'erreur SMTP. */
+export async function sendTestEmail(to: string) {
+  const s = await getSettings();
+  const start = new Date(Date.now() + 2 * 86_400_000);
+  start.setHours(10, 0, 0, 0);
+  const order = {
+    id: "test",
+    reference: "TEST",
+    customerName: "Client test",
+    email: to,
+    paymentMethod: "TRANSFER",
+    totalCents: 2350,
+    items: [
+      { quantity: 2, productName: "Produit exemple", variantName: "", unitPriceCents: 850 },
+      { quantity: 1, productName: "Autre produit", variantName: "Grand", unitPriceCents: 650 },
+    ],
+    pickupSlot: {
+      startsAt: start,
+      endsAt: new Date(start.getTime() + 2 * 3_600_000),
+      pickupPoint: { name: "Point de retrait exemple", address: "1 rue de l'Exemple", details: "" },
+    },
+  } as unknown as FullOrder;
+  const body = `<p style="background:#fff4d6;padding:8px 12px;border-radius:6px;font-size:13px">Ceci est un email de test envoyé depuis l'admin. La commande ci-dessous est fictive.</p>
+${confirmationBody(order, s)}
+<p style="margin-top:24px;font-size:12px;color:#888">Liens du site : ${esc(siteUrl())}</p>`;
+  await deliverEmail(to, `[TEST] Commande ${order.reference} confirmée`, layout(s, "Commande confirmée", body));
 }

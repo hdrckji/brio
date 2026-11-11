@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { OrderStatus } from "@/generated/prisma/client";
 import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { fullOrderInclude, sendOrderCancelled, sendOrderReady } from "@/lib/emails";
+import { fullOrderInclude, sendOrderCancelled, sendOrderReady, sendTestEmail } from "@/lib/emails";
 import { localToDate } from "@/lib/format";
 import { markOrderPaidManually } from "@/lib/orders";
 import { saveSettings, SETTING_DEFAULTS, type SettingKey } from "@/lib/settings";
@@ -286,4 +286,17 @@ export async function updateSettings(_prev: FormState, formData: FormData): Prom
   await saveSettings(values);
   revalidatePath("/", "layout");
   return { ok: "Paramètres enregistrés." };
+}
+
+export async function sendTestEmailAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const to = String(formData.get("testEmail") ?? "").trim();
+  if (!z.email().safeParse(to).success) return { error: "Adresse email invalide." };
+  try {
+    await sendTestEmail(to);
+  } catch (err) {
+    console.error("Échec du mail test", err);
+    return { error: `Échec de l'envoi : ${err instanceof Error ? err.message : String(err)}` };
+  }
+  return { ok: `Email de test envoyé à ${to}. Pense à regarder dans les spams.` };
 }

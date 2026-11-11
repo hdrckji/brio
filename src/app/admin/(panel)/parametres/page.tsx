@@ -1,6 +1,6 @@
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { getSettings } from "@/lib/settings";
-import { updateSettings } from "../../actions";
+import { sendTestEmailAction, updateSettings } from "../../actions";
 
 function Check({ name, label, checked }: { name: string; label: string; checked: boolean }) {
   return (
@@ -96,6 +96,21 @@ export default async function SettingsPage() {
         </section>
 
         <SubmitButton>Enregistrer</SubmitButton>
+      </ActionForm>
+
+      <ActionForm action={sendTestEmailAction} className="card max-w-2xl space-y-4">
+        <h2 className="font-display text-2xl">Tester l&apos;envoi d&apos;emails</h2>
+        <p className="text-sm text-chocolat/75">
+          Envoie un exemple d&apos;email de confirmation de commande (commande fictive, rien n&apos;est enregistré). En cas de
+          problème, l&apos;erreur du serveur email s&apos;affiche ici.
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-64 flex-1">
+            <label className="label" htmlFor="testEmail">Envoyer à</label>
+            <input className="input" id="testEmail" name="testEmail" type="email" required defaultValue={s.notifyEmail} />
+          </div>
+          <SubmitButton>Envoyer un email test</SubmitButton>
+        </div>
       </ActionForm>
     </div>
   );

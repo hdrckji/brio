@@ -17,15 +17,21 @@ function getTransporter() {
   return transporter;
 }
 
+/** Envoie un email et laisse remonter l'erreur SMTP (utilisé par le mail test de l'admin). */
+export async function deliverEmail(to: string, subject: string, html: string) {
+  const t = getTransporter();
+  if (!t) throw new Error("SMTP non configuré : la variable SMTP_HOST est vide sur le serveur.");
+  await t.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to, subject, html });
+}
+
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!to) return;
-  const t = getTransporter();
-  if (!t) {
+  if (!getTransporter()) {
     console.log(`[email non envoyé — SMTP non configuré] À: ${to} | Sujet: ${subject}`);
     return;
   }
   try {
-    await t.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to, subject, html });
+    await deliverEmail(to, subject, html);
   } catch (err) {
     // Un email en échec ne doit jamais bloquer une commande.
     console.error("Échec d'envoi d'email", { to, subject, err });
