@@ -4,8 +4,12 @@ import { ORDER_STATUS_LABELS, PAYMENT_LABELS, PAYMENT_STATUS_LABELS, formatDateT
 
 export const dynamic = "force-dynamic";
 
+// Un tableur exécute comme formule une cellule qui commence par = + - @ : on la neutralise avec une apostrophe.
+// Les valeurs purement numériques (téléphone « +32 470… ») ne peuvent rien exécuter et restent intactes.
+const neutralize = (s: string) => (/^[=+\-@\t\r]/.test(s) && !/^[+\-]?[\d\s().\/-]*$/.test(s) ? `'${s}` : s);
+
 const cell = (v: string | number) => {
-  const s = String(v);
+  const s = typeof v === "number" ? String(v) : neutralize(v);
   return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

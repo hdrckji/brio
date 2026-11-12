@@ -1,4 +1,5 @@
 import { ActionForm, SubmitButton } from "@/components/action-form";
+import { IMAGE_ACCEPT } from "@/lib/images";
 import { saveProduct } from "../../actions";
 import { VariantsEditor, type EditableVariant } from "./variants-editor";
 
@@ -55,7 +56,7 @@ export function ProductForm({ product }: { product?: Product }) {
             </label>
           </div>
         )}
-        <input className="input" id="image" name="image" type="file" accept="image/*" />
+        <input className="input" id="image" name="image" type="file" accept={IMAGE_ACCEPT} />
         <p className="mt-1 text-xs text-chocolat/75">JPG, PNG ou WebP, 5 Mo maximum. La photo est affichée en entier ; le format paysage (3:2) remplit parfaitement le cadre.</p>
       </div>
       <VariantsEditor

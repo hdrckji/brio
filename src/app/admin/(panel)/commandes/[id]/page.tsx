@@ -6,8 +6,10 @@ import { db } from "@/lib/db";
 import { fullOrderInclude } from "@/lib/emails";
 import { PAYMENT_LABELS, formatDateTime, formatPrice, formatSlot, itemLabel } from "@/lib/format";
 import { markPaid, markPickedUpAndPaid, setOrderStatus } from "../../../actions";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function OrderDetail({ params }: PageProps<"/admin/commandes/[id]">) {
+  await requireAdmin();
   const { id } = await params;
   const order = await db.order.findUnique({ where: { id }, include: fullOrderInclude });
   if (!order) notFound();

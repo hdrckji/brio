@@ -8,16 +8,32 @@ import { checkPassword, createSession, destroySession, requireAdmin } from "@/li
 import { db } from "@/lib/db";
 import { fullOrderInclude, sendOrderCancelled, sendOrderReady, sendTestEmail } from "@/lib/emails";
 import { localToDate } from "@/lib/format";
+import { sniffImageMime } from "@/lib/images";
 import { markOrderPaidManually } from "@/lib/orders";
+import { clientIp, record, reset, retryAfter, waitLabel } from "@/lib/rate-limit";
 import { saveSettings, SETTING_DEFAULTS, type SettingKey } from "@/lib/settings";
 
 export type FormState = { error?: string; ok?: string } | null;
 
 /* ---------- Authentification ---------- */
 
+// Échecs de connexion tolérés par fenêtre de 15 minutes : par adresse IP, et au total
+// (le plafond global borne une attaque répartie sur de nombreuses adresses).
+const LOGIN_WINDOW_MS = 15 * 60_000;
+const LOGIN_MAX_PER_IP = 5;
+const LOGIN_MAX_GLOBAL = 100;
+
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
   if (!process.env.ADMIN_PASSWORD) return { error: "ADMIN_PASSWORD n'est pas configuré sur le serveur." };
-  if (!checkPassword(String(formData.get("password") ?? ""))) return { error: "Mot de passe incorrect." };
+  const ipKey = `login:ip:${await clientIp()}`;
+  const wait = Math.max(retryAfter(ipKey, LOGIN_MAX_PER_IP), retryAfter("login:global", LOGIN_MAX_GLOBAL));
+  if (wait > 0) return { error: `Trop de tentatives. Réessayez dans ${waitLabel(wait)}.` };
+  if (!checkPassword(String(formData.get("password") ?? ""))) {
+    record(ipKey, LOGIN_WINDOW_MS);
+    record("login:global", LOGIN_WINDOW_MS);
+    return { error: "Mot de passe incorrect." };
+  }
+  reset(ipKey);
   await createSession();
   redirect("/admin");
 }
@@ -63,10 +79,13 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
 
   const image = formData.get("image");
   if (image instanceof File && image.size > 0) {
-    if (!image.type.startsWith("image/")) return { error: "Le fichier doit être une image." };
     if (image.size > MAX_IMAGE_BYTES) return { error: "Image trop lourde (5 Mo max)." };
-    data.imageData = new Uint8Array(await image.arrayBuffer());
-    data.imageMime = image.type;
+    const bytes = new Uint8Array(await image.arrayBuffer());
+    // Le type est déduit du contenu : celui annoncé par le navigateur n'est pas fiable (un SVG peut contenir du script).
+    const mime = sniffImageMime(bytes);
+    if (!mime) return { error: "Format non pris en charge : utilisez une photo JPG, PNG, WebP, GIF ou AVIF." };
+    data.imageData = bytes;
+    data.imageMime = mime;
     data.imageVersion = { increment: 1 };
   } else if (formData.get("removeImage") === "on") {
     data.imageData = null;

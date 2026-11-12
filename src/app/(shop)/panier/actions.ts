@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { itemLabel } from "@/lib/format";
 import { createOrder, OrderError, STRIPE_HOLD_MINUTES } from "@/lib/orders";
+import { clientIp, record, retryAfter } from "@/lib/rate-limit";
 import { enabledPaymentMethods, getSettings } from "@/lib/settings";
 import { getStripe } from "@/lib/stripe";
 
@@ -18,8 +19,16 @@ const schema = z.object({
   paymentMethod: z.enum(["STRIPE", "TRANSFER", "CASH"], "Merci de choisir un mode de paiement."),
   items: z
     .array(z.object({ productId: z.string().min(1), variantId: z.string().min(1).nullish(), quantity: z.number().int().min(1).max(99) }))
-    .min(1, "Votre panier est vide."),
+    .min(1, "Votre panier est vide.")
+    .max(50, "Votre panier contient trop de lignes."),
 });
+
+// Freins anti-abus : commandes créées par adresse IP et par adresse email.
+const ORDER_LIMITS = [
+  { scope: "ip", limit: 8, windowMs: 10 * 60_000 },
+  { scope: "ip-jour", limit: 40, windowMs: 24 * 3_600_000 },
+  { scope: "email", limit: 5, windowMs: 3_600_000 },
+] as const;
 
 export type CheckoutState = { error?: string } | null;
 
@@ -53,9 +62,18 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   if (!enabledPaymentMethods(settings).includes(parsed.data.paymentMethod))
     return { error: "Ce mode de paiement n'est pas disponible." };
 
+  const ip = await clientIp();
+  const limitKeys = ORDER_LIMITS.map((l) => ({
+    ...l,
+    key: `commande:${l.scope}:${l.scope === "email" ? parsed.data.email.toLowerCase() : ip}`,
+  }));
+  if (limitKeys.some((l) => retryAfter(l.key, l.limit) > 0))
+    return { error: "Trop de commandes en peu de temps. Merci de réessayer un peu plus tard, ou de nous contacter." };
+
   let order;
   try {
     order = await createOrder(parsed.data);
+    for (const l of limitKeys) record(l.key, l.windowMs);
   } catch (err) {
     if (err instanceof OrderError) return { error: err.message };
     if (typeof err === "object" && err && "code" in err && err.code === "P2034")

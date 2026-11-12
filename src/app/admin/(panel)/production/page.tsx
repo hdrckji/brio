@@ -1,11 +1,13 @@
 import { db } from "@/lib/db";
 import { dayKey, formatDate, itemLabel, localToDate } from "@/lib/format";
 import { PrintButton } from "./print-button";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function ProductionPage({ searchParams }: PageProps<"/admin/production">) {
+  await requireAdmin();
   const sp = await searchParams;
   const point = typeof sp.point === "string" ? sp.point : "";
-  const from = typeof sp.du === "string" && sp.du ? sp.du : dayKey(new Date());
+  const from = typeof sp.du === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.du) ? sp.du : dayKey(new Date());
 
   const items = await db.orderItem.findMany({
     where: {

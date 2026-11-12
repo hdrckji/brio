@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { PointForm } from "./point-form";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function PointsPage() {
+  await requireAdmin();
   const points = await db.pickupPoint.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     include: { _count: { select: { slots: { where: { active: true, startsAt: { gte: new Date() } } } } } },

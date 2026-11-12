@@ -4,8 +4,10 @@ import { ConfirmButton } from "@/components/action-form";
 import { db } from "@/lib/db";
 import { deleteProduct } from "../../../actions";
 import { ProductForm } from "../product-form";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function EditProduct({ params }: PageProps<"/admin/produits/[id]">) {
+  await requireAdmin();
   const { id } = await params;
   if (id === "nouveau") {
     return (

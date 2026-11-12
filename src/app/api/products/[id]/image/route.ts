@@ -7,6 +7,9 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/products/[id]/i
   return new Response(Buffer.from(product.imageData), {
     headers: {
       "Content-Type": product.imageMime,
+      // Une image ouverte directement dans le navigateur ne doit jamais pouvoir exécuter de script (ex. SVG déjà en base).
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
       // l'URL contient ?v=<version>, on peut donc mettre en cache longtemps
       "Cache-Control": "public, max-age=31536000, immutable",
     },

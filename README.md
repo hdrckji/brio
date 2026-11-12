@@ -47,3 +47,10 @@ Back-office : http://localhost:3000/admin (mot de passe = `ADMIN_PASSWORD`).
 
 ### Emails
 N'importe quel SMTP fonctionne (Gmail avec un mot de passe d'application, OVH, Brevo, Resend SMTP…). Sans configuration SMTP, les emails sont seulement écrits dans les logs.
+
+## Sécurité
+
+- Chaque page et chaque action de `/admin` appelle `requireAdmin()` avant de lire des données, et `src/proxy.ts` bloque `/admin/*` en amont. Toute nouvelle page admin doit faire de même : le contrôle du layout seul ne protège pas les données de la page.
+- `SESSION_SECRET` doit être défini en production (longue chaîne aléatoire). Le changer déconnecte toutes les sessions admin.
+- Connexion admin : 5 essais ratés par adresse IP par quart d'heure. Commandes : 8 par adresse IP par 10 minutes, 5 par adresse email par heure. Les compteurs sont en mémoire (une seule instance) et se basent sur l'en-tête `X-Real-IP` posé par Railway.
+- Photos produit : JPG, PNG, WebP, GIF ou AVIF uniquement, reconnus d'après le contenu du fichier.

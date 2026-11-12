@@ -1,6 +1,7 @@
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { getSettings } from "@/lib/settings";
 import { sendTestEmailAction, updateSettings } from "../../actions";
+import { requireAdmin } from "@/lib/auth";
 
 function Check({ name, label, checked }: { name: string; label: string; checked: boolean }) {
   return (
@@ -11,6 +12,7 @@ function Check({ name, label, checked }: { name: string; label: string; checked:
 }
 
 export default async function SettingsPage() {
+  await requireAdmin();
   const s = await getSettings();
   const stripeReady = Boolean(process.env.STRIPE_SECRET_KEY);
   const webhookReady = Boolean(process.env.STRIPE_WEBHOOK_SECRET);

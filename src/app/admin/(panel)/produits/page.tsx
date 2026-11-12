@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function ProductsPage() {
+  await requireAdmin();
   const products = await db.product.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: {

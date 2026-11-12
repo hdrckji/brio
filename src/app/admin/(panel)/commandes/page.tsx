@@ -4,8 +4,10 @@ import { PaymentBadge, StatusBadge } from "@/components/badges";
 import { db } from "@/lib/db";
 import { ORDER_STATUS_LABELS, formatDateTime, formatPrice, itemLabel, localToDate } from "@/lib/format";
 import { releaseAbandonedOrders } from "@/lib/orders";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function OrdersPage({ searchParams }: PageProps<"/admin/commandes">) {
+  await requireAdmin();
   await releaseAbandonedOrders();
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : "");

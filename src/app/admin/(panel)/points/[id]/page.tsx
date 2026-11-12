@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { dayKey, formatDate, formatTime } from "@/lib/format";
 import { deletePickupPoint, deleteSlot, generateSlots, updateSlot } from "../../../actions";
 import { PointForm } from "../point-form";
+import { requireAdmin } from "@/lib/auth";
 
 const WEEKDAYS = [
   { v: 1, l: "Lun" },
@@ -17,6 +18,7 @@ const WEEKDAYS = [
 ];
 
 export default async function PointPage({ params, searchParams }: PageProps<"/admin/points/[id]">) {
+  await requireAdmin();
   const { id } = await params;
   const sp = await searchParams;
   const showPast = sp.passes === "1";

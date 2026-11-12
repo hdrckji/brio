@@ -3,8 +3,10 @@ import { PaymentBadge, StatusBadge } from "@/components/badges";
 import { db } from "@/lib/db";
 import { formatPrice, formatTime, localToDate, dayKey, formatDate } from "@/lib/format";
 import { releaseAbandonedOrders } from "@/lib/orders";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function Dashboard() {
+  await requireAdmin();
   await releaseAbandonedOrders();
   const today = dayKey(new Date());
   const start = localToDate(today, "00:00");
