@@ -54,6 +54,7 @@ model PickupSlot {
   pickupPoint   PickupPoint @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
   startsAt      DateTime
   endsAt        DateTime
+  /// Nombre maximum d'articles (somme des quantités commandées), pas de commandes.
   capacity      Int
   active        Boolean     @default(true)
   orders        Order[]

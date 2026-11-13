@@ -6,7 +6,7 @@ Site de commande en ligne pour une boulangerie : peu de références, **aucune l
 
 **Côté client**
 - Catalogue et panier (conservé dans le navigateur)
-- Choix du point de retrait, puis d'un créneau (avec une capacité limitée par créneau)
+- Choix du point de retrait, puis d'un créneau (avec un nombre d'articles limité par créneau)
 - Délai minimum avant retrait (24 h par défaut, modifiable)
 - Paiement par carte (Stripe Checkout), par virement (IBAN et référence affichés) ou en espèces au retrait
 - Page de suivi de commande et emails de confirmation
@@ -16,7 +16,7 @@ Site de commande en ligne pour une boulangerie : peu de références, **aucune l
 - Commandes : filtres, recherche, changement de statut (prête, retirée, annulée), paiement reçu, emails au client
 - Production : quantités à préparer par jour et par point de retrait (imprimable) et export CSV
 - Produits : création, modification, photo, masquage
-- Points de retrait et créneaux : génération en masse (période, jours, horaires, durée, capacité), puis modification ou fermeture individuelle
+- Points de retrait et créneaux : génération en masse (période, jours, horaires, durée, nombre d'articles max), puis modification ou fermeture individuelle
 - Paramètres : ouverture ou fermeture des commandes, délai, modes de paiement, IBAN, email de notification
 
 ## Stack

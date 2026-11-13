@@ -185,7 +185,7 @@ const slotGenSchema = z.object({
   startTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure de début invalide."),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure de fin invalide."),
   duration: z.coerce.number().int().min(5, "Durée minimum : 5 minutes.").max(24 * 60),
-  capacity: z.coerce.number().int().min(1, "Capacité minimum : 1."),
+  capacity: z.coerce.number().int().min(1, "Capacité minimum : 1 article."),
   weekdays: z.array(z.coerce.number().int().min(0).max(6)).min(1, "Choisissez au moins un jour."),
 });
 
@@ -249,6 +249,21 @@ export async function updateSlot(formData: FormData) {
     data: { ...(Number.isInteger(capacity) && capacity >= 0 ? { capacity } : {}), active },
   });
   revalidatePath(`/admin/points/${slot.pickupPointId}`);
+}
+
+/** Applique la même capacité (en articles) à tous les créneaux à venir d'un point de retrait. */
+export async function setUpcomingSlotsCapacity(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const pickupPointId = String(formData.get("pickupPointId") ?? "");
+  if (!pickupPointId) return { error: "Point de retrait manquant." };
+  const capacity = z.coerce.number().int().min(1).max(100_000).safeParse(formData.get("capacity"));
+  if (!capacity.success) return { error: "Indiquez un nombre d'articles (minimum 1)." };
+  const updated = await db.pickupSlot.updateMany({
+    where: { pickupPointId, endsAt: { gte: new Date() } },
+    data: { capacity: capacity.data },
+  });
+  revalidatePath(`/admin/points/${pickupPointId}`);
+  return { ok: `${updated.count} créneau(x) à venir passé(s) à ${capacity.data} articles max.` };
 }
 
 export async function deleteSlot(formData: FormData) {

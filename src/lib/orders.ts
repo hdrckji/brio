@@ -1,14 +1,31 @@
 import "server-only";
 import { randomInt } from "node:crypto";
+import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { fullOrderInclude, sendOrderConfirmation, sendPaymentReceived } from "./emails";
 import { dayKey, formatDate, formatTime } from "./format";
 import { getSettings } from "./settings";
 
-/** Durée pendant laquelle une commande Stripe non payée bloque une place. */
+/** Durée pendant laquelle une commande Stripe non payée bloque ses places. */
 export const STRIPE_HOLD_MINUTES = 40;
 
 const ACTIVE_STATUSES = ["AWAITING_PAYMENT", "CONFIRMED", "READY", "PICKED_UP"] as const;
+
+/**
+ * La capacité d'un créneau se compte en articles, pas en commandes : une commande de
+ * 6 pièces prend 6 places. À inclure sur un créneau pour charger ce qui y est réservé.
+ */
+export const slotBookingsInclude = {
+  orders: {
+    where: { status: { in: [...ACTIVE_STATUSES] } },
+    select: { items: { select: { quantity: true } } },
+  },
+} satisfies Prisma.PickupSlotInclude;
+
+/** Nombre d'articles réservés sur un créneau chargé avec `slotBookingsInclude`. */
+export function bookedArticles(slot: { orders: { items: { quantity: number }[] }[] }) {
+  return slot.orders.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0), 0);
+}
 
 export function generateReference() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -39,7 +56,7 @@ export async function getBookableSlots() {
       slots: {
         where: { active: true, startsAt: { gte: minStart } },
         orderBy: { startsAt: "asc" },
-        include: { _count: { select: { orders: { where: { status: { in: [...ACTIVE_STATUSES] } } } } } },
+        include: slotBookingsInclude,
       },
     },
   });
@@ -53,7 +70,8 @@ export async function getBookableSlots() {
       day: dayKey(s.startsAt),
       dayLabel: formatDate(s.startsAt),
       timeLabel: `${formatTime(s.startsAt)} – ${formatTime(s.endsAt)}`,
-      remaining: Math.max(0, s.capacity - s._count.orders),
+      // Places restantes, en articles
+      remaining: Math.max(0, s.capacity - bookedArticles(s)),
     })),
   }));
 }
@@ -115,9 +133,10 @@ export async function createOrder(input: CreateOrderInput) {
     };
   });
   const totalCents = items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0);
+  const articles = items.reduce((sum, i) => sum + i.quantity, 0);
   const minStart = new Date(Date.now() + Number(settings.leadTimeHours || 24) * 3_600_000);
 
-  // Transaction sérialisable : deux clients ne peuvent pas prendre la dernière place en même temps.
+  // Transaction sérialisable : deux clients ne peuvent pas prendre les dernières places en même temps.
   const order = await db.$transaction(
     async (tx) => {
       const slot = await tx.pickupSlot.findUnique({
@@ -128,10 +147,16 @@ export async function createOrder(input: CreateOrderInput) {
         throw new OrderError("Ce créneau de retrait n'est pas disponible.");
       if (slot.startsAt < minStart)
         throw new OrderError(`Les commandes doivent être passées au moins ${settings.leadTimeHours} h avant le retrait.`);
-      const taken = await tx.order.count({
-        where: { pickupSlotId: slot.id, status: { in: [...ACTIVE_STATUSES] } },
+      const booked = await tx.orderItem.aggregate({
+        _sum: { quantity: true },
+        where: { order: { pickupSlotId: slot.id, status: { in: [...ACTIVE_STATUSES] } } },
       });
-      if (taken >= slot.capacity) throw new OrderError("Ce créneau est complet, merci d'en choisir un autre.");
+      const remaining = slot.capacity - (booked._sum.quantity ?? 0);
+      if (remaining <= 0) throw new OrderError("Ce créneau est complet, merci d'en choisir un autre.");
+      if (articles > remaining)
+        throw new OrderError(
+          `Ce créneau n'a plus assez de place pour vos ${articles} articles (il en reste ${remaining}). Merci d'en choisir un autre.`,
+        );
 
       return tx.order.create({
         data: {

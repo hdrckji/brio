@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ActionForm, ConfirmButton, SubmitButton } from "@/components/action-form";
 import { db } from "@/lib/db";
 import { dayKey, formatDate, formatTime } from "@/lib/format";
-import { deleteAllSlots, deletePickupPoint, deleteSlot, generateSlots, updateSlot } from "../../../actions";
+import { bookedArticles, slotBookingsInclude } from "@/lib/orders";
+import { deleteAllSlots, deletePickupPoint, deleteSlot, generateSlots, setUpcomingSlotsCapacity, updateSlot } from "../../../actions";
 import { PointForm } from "../point-form";
 import { requireAdmin } from "@/lib/auth";
 
@@ -28,7 +29,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
       slots: {
         where: showPast ? {} : { endsAt: { gte: new Date() } },
         orderBy: { startsAt: "asc" },
-        include: { _count: { select: { orders: { where: { status: { not: "CANCELLED" } } } } } },
+        include: slotBookingsInclude,
       },
     },
   });
@@ -56,7 +57,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
         <ActionForm action={generateSlots} className="card space-y-4 text-sm">
           <input type="hidden" name="pickupPointId" value={point.id} />
           <p className="text-chocolat/75">
-            Génère des créneaux réguliers sur une période. Ex. : du 20 au 24 décembre, de 08:00 à 12:00, créneaux de 30 min, 10 commandes max par créneau.
+            Génère des créneaux réguliers sur une période. Ex. : du 20 au 24 décembre, de 08:00 à 12:00, créneaux de 30 min, 30 articles max par créneau. La limite compte les articles, pas les commandes : une commande de 6 pièces prend 6 places.
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
@@ -92,8 +93,8 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
                 <input className="input" type="number" name="duration" min={5} required defaultValue={30} />
               </div>
               <div>
-                <label className="label">Max commandes</label>
-                <input className="input" type="number" name="capacity" min={1} required defaultValue={10} />
+                <label className="label">Max articles</label>
+                <input className="input" type="number" name="capacity" min={1} required defaultValue={30} />
               </div>
             </div>
           </div>
@@ -109,45 +110,61 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
           </Link>
         </div>
         {byDay.size === 0 && <p className="card text-sm text-chocolat/75">Aucun créneau.</p>}
+        {byDay.size > 0 && (
+          <ActionForm action={setUpcomingSlotsCapacity} className="card space-y-3 text-sm">
+            <input type="hidden" name="pickupPointId" value={point.id} />
+            <label className="label" htmlFor="bulkCapacity">Articles max pour tous les créneaux à venir</label>
+            <div className="flex flex-wrap items-center gap-3">
+              <input className="input w-28" id="bulkCapacity" type="number" name="capacity" min={1} required />
+              <ConfirmButton message="Remplacer la limite de tous les créneaux à venir de ce point de retrait ?" className="btn-secondary">
+                Appliquer à tous
+              </ConfirmButton>
+            </div>
+          </ActionForm>
+        )}
         {[...byDay.entries()].map(([k, d]) => (
           <div key={k} className="card p-0">
             <div className="border-b border-chocolat/10 px-4 py-2 font-medium first-letter:uppercase">{d.label}</div>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-chocolat/10">
-                {d.slots.map((s) => (
-                  <tr key={s.id} className={s.active ? "" : "text-chocolat/55"}>
-                    <td className="px-4 py-2 tabular-nums">
-                      {formatTime(s.startsAt)} – {formatTime(s.endsAt)}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className={s._count.orders >= s.capacity ? "font-semibold text-pervenche" : ""}>
-                        {s._count.orders} / {s.capacity}
-                      </span>{" "}
-                      réservé(s)
-                    </td>
-                    <td className="px-4 py-2">
-                      <form key={`${s.capacity}-${s.active}`} action={updateSlot} className="flex items-center gap-2">
-                        <input type="hidden" name="id" value={s.id} />
-                        <input className="input w-20 py-1" type="number" name="capacity" min={0} defaultValue={s.capacity} aria-label="Capacité" />
-                        <label className="flex items-center gap-1">
-                          <input type="checkbox" name="active" defaultChecked={s.active} className="accent-pervenche" /> Ouvert
-                        </label>
-                        <SubmitButton className="btn-secondary py-1">OK</SubmitButton>
-                      </form>
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <form action={deleteSlot}>
-                        <input type="hidden" name="id" value={s.id} />
-                        <ConfirmButton
-                          message={s._count.orders > 0 ? "Ce créneau a des commandes : il sera fermé, pas supprimé. Continuer ?" : "Supprimer ce créneau ?"}
-                          className="text-xs text-red-700 hover:underline"
-                        >
-                          Supprimer
-                        </ConfirmButton>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
+                {d.slots.map((s) => {
+                  const booked = bookedArticles(s);
+                  return (
+                    <tr key={s.id} className={s.active ? "" : "text-chocolat/55"}>
+                      <td className="px-4 py-2 tabular-nums">
+                        {formatTime(s.startsAt)} – {formatTime(s.endsAt)}
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={booked >= s.capacity ? "font-semibold text-pervenche" : ""}>
+                          {booked} / {s.capacity}
+                        </span>{" "}
+                        article(s)
+                        <span className="text-chocolat/55"> · {s.orders.length} commande(s)</span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <form key={`${s.capacity}-${s.active}`} action={updateSlot} className="flex items-center gap-2">
+                          <input type="hidden" name="id" value={s.id} />
+                          <input className="input w-20 py-1" type="number" name="capacity" min={0} defaultValue={s.capacity} aria-label="Articles max" title="Articles max" />
+                          <label className="flex items-center gap-1">
+                            <input type="checkbox" name="active" defaultChecked={s.active} className="accent-pervenche" /> Ouvert
+                          </label>
+                          <SubmitButton className="btn-secondary py-1">OK</SubmitButton>
+                        </form>
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        <form action={deleteSlot}>
+                          <input type="hidden" name="id" value={s.id} />
+                          <ConfirmButton
+                            message={s.orders.length > 0 ? "Ce créneau a des commandes : il sera fermé, pas supprimé. Continuer ?" : "Supprimer ce créneau ?"}
+                            className="text-xs text-red-700 hover:underline"
+                          >
+                            Supprimer
+                          </ConfirmButton>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

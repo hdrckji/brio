@@ -52,7 +52,22 @@ export function CheckoutForm({
       </div>
     );
 
-  const missing = !pointId ? "Choisissez un point de retrait." : !slotId ? "Choisissez un créneau de retrait." : !payment ? "Choisissez un mode de paiement." : null;
+  // La capacité d'un créneau se compte en articles : il doit rester assez de place pour tout le panier.
+  const articles = cart.count;
+  const fits = (s: Point["slots"][number]) => s.remaining >= articles;
+  const slot = point?.slots.find((s) => s.id === slotId);
+  const tooSmall = (point?.slots ?? []).filter((s) => s.remaining > 0 && !fits(s)).length;
+  const noSlotFits = !point?.slots.some(fits);
+
+  const missing = !pointId
+    ? "Choisissez un point de retrait."
+    : !slot
+      ? "Choisissez un créneau de retrait."
+      : !fits(slot)
+        ? `Ce créneau n'a plus assez de place pour vos ${articles} articles. Choisissez-en un autre.`
+        : !payment
+          ? "Choisissez un mode de paiement."
+          : null;
 
   return (
     <form action={action} className="grid items-start gap-10 lg:grid-cols-[1fr_360px]">
@@ -97,6 +112,19 @@ export function CheckoutForm({
               <p className="text-sm text-chocolat/75">
                 Seuls les créneaux à plus de {leadTimeHours} heures sont proposés. Votre commande est préparée le jour même du retrait.
               </p>
+              {noSlotFits ? (
+                <p role="status" className="rounded-lg bg-papier px-4 py-3 text-sm">
+                  {tooSmall > 0
+                    ? `Aucun créneau n'a assez de place pour vos ${articles} articles à ${point.name}. Essayez un autre point de retrait ou réduisez votre panier.`
+                    : `Tous les créneaux sont complets à ${point.name}. Essayez un autre point de retrait.`}
+                </p>
+              ) : (
+                tooSmall > 0 && (
+                  <p role="status" className="text-sm text-chocolat/75">
+                    Les créneaux barrés sont complets ou n&apos;ont plus assez de place pour vos {articles} articles.
+                  </p>
+                )
+              )}
               {slotsByDay.map((d) => (
                 <div key={d.label}>
                   <div className="mb-2 font-semibold first-letter:uppercase">{d.label}</div>
@@ -107,12 +135,12 @@ export function CheckoutForm({
                         role="radio"
                         aria-checked={slotId === s.id}
                         key={s.id}
-                        disabled={s.remaining === 0}
+                        disabled={!fits(s)}
                         onClick={() => setSlotId(s.id)}
                         className={`rounded-full border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-chocolat/45 disabled:line-through ${slotId === s.id ? "border-chocolat bg-chocolat text-white" : "border-cacao/35 bg-papier hover:border-chocolat"}`}
                       >
                         {s.timeLabel}
-                        {s.remaining === 0 && <span className="sr-only"> (complet)</span>}
+                        {!fits(s) && <span className="sr-only">{s.remaining === 0 ? " (complet)" : ` (plus que ${s.remaining} place${s.remaining > 1 ? "s" : ""})`}</span>}
                       </button>
                     ))}
                   </div>
