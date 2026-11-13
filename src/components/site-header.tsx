@@ -3,15 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CartButton } from "./cart-button";
 
 export function SiteHeader({ shopName }: { shopName: string }) {
   const home = usePathname() === "/";
   return (
-    <header className="relative mx-auto w-full max-w-5xl px-4 pt-4 sm:px-8 sm:pt-6">
-      <div className="flex justify-end">
-        <CartButton />
-      </div>
+    <header className="relative mx-auto w-full max-w-5xl px-4 sm:px-8">
       {home ? (
         // Accueil : le médaillon du logo, posé sur les rayures et à cheval sur l'étiquette
         <Image

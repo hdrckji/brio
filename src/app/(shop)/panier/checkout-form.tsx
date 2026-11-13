@@ -140,7 +140,7 @@ export function CheckoutForm({
             </div>
             <div className="sm:col-span-2">
               <label className="label" htmlFor="note">Une précision pour la boulangerie ? (facultatif)</label>
-              <textarea className="input" id="note" name="note" rows={2} placeholder="Allergie, message sur la bûche…" />
+              <textarea className="input" id="note" name="note" rows={2} />
             </div>
           </div>
         </Step>
