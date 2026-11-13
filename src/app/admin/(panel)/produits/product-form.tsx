@@ -10,6 +10,7 @@ type Product = {
   priceCents: number;
   sortOrder: number;
   active: boolean;
+  countsInSlotLimit: boolean;
   imageMime: string | null;
   imageVersion: number;
   variants: { id: string; name: string; priceCents: number | null; active: boolean }[];
@@ -73,6 +74,15 @@ export function ProductForm({ product }: { product?: Product }) {
         <input type="checkbox" name="active" defaultChecked={product?.active ?? true} className="accent-pervenche" />
         En vente sur le site
       </label>
+      <div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="countsInSlotLimit" defaultChecked={product?.countsInSlotLimit ?? true} className="accent-pervenche" />
+          Compte dans la limite d&apos;articles par créneau
+        </label>
+        <p className="mt-1 text-xs text-chocolat/75">
+          Décochez pour un petit article (ex. truffes) qui ne doit pas remplir les créneaux de retrait : il peut alors être commandé sans limite.
+        </p>
+      </div>
       <SubmitButton>{product ? "Enregistrer" : "Créer le produit"}</SubmitButton>
     </ActionForm>
   );

@@ -57,7 +57,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
         <ActionForm action={generateSlots} className="card space-y-4 text-sm">
           <input type="hidden" name="pickupPointId" value={point.id} />
           <p className="text-chocolat/75">
-            Génère des créneaux réguliers sur une période. Ex. : du 20 au 24 décembre, de 08:00 à 12:00, créneaux de 30 min, 30 articles max par créneau. La limite compte les articles, pas les commandes : une commande de 6 pièces prend 6 places.
+            Génère des créneaux réguliers sur une période. Ex. : du 20 au 24 décembre, de 08:00 à 12:00, créneaux de 30 min, 10 articles max par créneau. La limite compte les articles, pas les commandes : une commande de 6 pièces prend 6 places. Les produits réglés « hors limite » dans leur fiche (ex. truffes) ne comptent pas.
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
@@ -94,7 +94,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
               </div>
               <div>
                 <label className="label">Max articles</label>
-                <input className="input" type="number" name="capacity" min={1} required defaultValue={30} />
+                <input className="input" type="number" name="capacity" min={1} required defaultValue={10} />
               </div>
             </div>
           </div>

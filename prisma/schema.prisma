@@ -13,6 +13,8 @@ model Product {
   description String      @default("")
   priceCents  Int
   active      Boolean     @default(true)
+  /// Faux pour les petits articles (ex. truffes) qui ne prennent pas de place dans la limite d'un créneau.
+  countsInSlotLimit Boolean @default(true)
   sortOrder   Int         @default(0)
   imageData   Bytes?
   imageMime   String?
@@ -55,6 +57,7 @@ model PickupSlot {
   startsAt      DateTime
   endsAt        DateTime
   /// Nombre maximum d'articles (somme des quantités commandées), pas de commandes.
+  /// Seuls les produits avec countsInSlotLimit comptent.
   capacity      Int
   active        Boolean     @default(true)
   orders        Order[]

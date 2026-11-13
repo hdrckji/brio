@@ -27,6 +27,7 @@ export default async function EditProduct({ params }: PageProps<"/admin/produits
       priceCents: true,
       sortOrder: true,
       active: true,
+      countsInSlotLimit: true,
       imageMime: true,
       imageVersion: true,
       variants: { orderBy: [{ sortOrder: "asc" }, { name: "asc" }], select: { id: true, name: true, priceCents: true, active: true } },

@@ -12,6 +12,7 @@ export default async function ProductsPage() {
       name: true,
       priceCents: true,
       active: true,
+      countsInSlotLimit: true,
       imageMime: true,
       imageVersion: true,
       sortOrder: true,
@@ -57,6 +58,7 @@ export default async function ProductsPage() {
                 <td className="px-4 py-2">{p.sortOrder}</td>
                 <td className="px-4 py-2">
                   {p.active ? <span className="text-green-700">En vente</span> : <span className="text-chocolat/65">Masqué</span>}
+                  {!p.countsInSlotLimit && <div className="text-xs text-chocolat/75">Hors limite des créneaux</div>}
                 </td>
               </tr>
             ))}

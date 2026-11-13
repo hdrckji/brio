@@ -17,10 +17,13 @@ type Point = {
 
 export function CheckoutForm({
   points,
+  uncountedProductIds,
   paymentMethods,
   leadTimeHours,
 }: {
   points: Point[];
+  /** Produits qui ne prennent pas de place dans un créneau (ex. truffes). */
+  uncountedProductIds: string[];
   paymentMethods: (keyof typeof PAYMENT_LABELS)[];
   leadTimeHours: number;
 }) {
@@ -52,8 +55,9 @@ export function CheckoutForm({
       </div>
     );
 
-  // La capacité d'un créneau se compte en articles : il doit rester assez de place pour tout le panier.
-  const articles = cart.count;
+  // La capacité d'un créneau se compte en articles : il doit rester assez de place pour tout le panier,
+  // sans compter les produits hors limite.
+  const articles = cart.lines.reduce((sum, l) => sum + (uncountedProductIds.includes(l.productId) ? 0 : l.quantity), 0);
   const fits = (s: Point["slots"][number]) => s.remaining >= articles;
   const slot = point?.slots.find((s) => s.id === slotId);
   const tooSmall = (point?.slots ?? []).filter((s) => s.remaining > 0 && !fits(s)).length;
@@ -64,7 +68,7 @@ export function CheckoutForm({
     : !slot
       ? "Choisissez un créneau de retrait."
       : !fits(slot)
-        ? `Ce créneau n'a plus assez de place pour vos ${articles} articles. Choisissez-en un autre.`
+        ? "Ce créneau n'a plus assez de place pour votre panier. Choisissez-en un autre."
         : !payment
           ? "Choisissez un mode de paiement."
           : null;
@@ -115,13 +119,13 @@ export function CheckoutForm({
               {noSlotFits ? (
                 <p role="status" className="rounded-lg bg-papier px-4 py-3 text-sm">
                   {tooSmall > 0
-                    ? `Aucun créneau n'a assez de place pour vos ${articles} articles à ${point.name}. Essayez un autre point de retrait ou réduisez votre panier.`
+                    ? `Aucun créneau n'a assez de place pour votre panier à ${point.name}. Essayez un autre point de retrait ou réduisez votre panier.`
                     : `Tous les créneaux sont complets à ${point.name}. Essayez un autre point de retrait.`}
                 </p>
               ) : (
                 tooSmall > 0 && (
                   <p role="status" className="text-sm text-chocolat/75">
-                    Les créneaux barrés sont complets ou n&apos;ont plus assez de place pour vos {articles} articles.
+                    Les créneaux barrés sont complets ou n&apos;ont plus assez de place pour votre panier.
                   </p>
                 )
               )}

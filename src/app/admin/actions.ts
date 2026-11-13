@@ -66,6 +66,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     priceCents: number;
     sortOrder: number;
     active: boolean;
+    countsInSlotLimit: boolean;
     imageData?: Uint8Array<ArrayBuffer> | null;
     imageMime?: string | null;
     imageVersion?: { increment: number };
@@ -75,6 +76,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     description: String(formData.get("description") ?? "").trim(),
     sortOrder: Number(formData.get("sortOrder") || 0) || 0,
     active: formData.get("active") === "on",
+    countsInSlotLimit: formData.get("countsInSlotLimit") === "on",
   };
 
   const image = formData.get("image");

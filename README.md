@@ -6,7 +6,7 @@ Site de commande en ligne pour une boulangerie : peu de références, **aucune l
 
 **Côté client**
 - Catalogue et panier (conservé dans le navigateur)
-- Choix du point de retrait, puis d'un créneau (avec un nombre d'articles limité par créneau)
+- Choix du point de retrait, puis d'un créneau (avec un nombre d'articles limité par créneau ; un produit peut être exclu de la limite, ex. truffes)
 - Délai minimum avant retrait (24 h par défaut, modifiable)
 - Paiement par carte (Stripe Checkout), par virement (IBAN et référence affichés) ou en espèces au retrait
 - Page de suivi de commande et emails de confirmation

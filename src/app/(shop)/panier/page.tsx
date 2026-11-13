@@ -1,11 +1,11 @@
-import { getBookableSlots } from "@/lib/orders";
+import { getBookableSlots, getUncountedProductIds } from "@/lib/orders";
 import { enabledPaymentMethods, getSettings } from "@/lib/settings";
 import { CheckoutForm } from "./checkout-form";
 
 export const metadata = { title: "Panier, Biscotte" };
 
 export default async function CartPage({ searchParams }: PageProps<"/panier">) {
-  const [settings, points, sp] = await Promise.all([getSettings(), getBookableSlots(), searchParams]);
+  const [settings, points, uncountedProductIds, sp] = await Promise.all([getSettings(), getBookableSlots(), getUncountedProductIds(), searchParams]);
   return (
     <div className="space-y-8">
       <h1 className="pt-6 text-center font-display text-5xl leading-none sm:text-6xl">Panier</h1>
@@ -19,6 +19,7 @@ export default async function CartPage({ searchParams }: PageProps<"/panier">) {
       ) : (
         <CheckoutForm
           points={points}
+          uncountedProductIds={uncountedProductIds}
           paymentMethods={enabledPaymentMethods(settings)}
           leadTimeHours={Number(settings.leadTimeHours)}
         />
