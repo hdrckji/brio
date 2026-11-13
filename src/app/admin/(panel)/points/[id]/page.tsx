@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ActionForm, ConfirmButton, SubmitButton } from "@/components/action-form";
 import { db } from "@/lib/db";
 import { dayKey, formatDate, formatTime } from "@/lib/format";
-import { deletePickupPoint, deleteSlot, generateSlots, updateSlot } from "../../../actions";
+import { deleteAllSlots, deletePickupPoint, deleteSlot, generateSlots, updateSlot } from "../../../actions";
 import { PointForm } from "../point-form";
 import { requireAdmin } from "@/lib/auth";
 
@@ -33,6 +33,8 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
     },
   });
   if (!point) notFound();
+  // Tous les créneaux du point, y compris les passés masqués dans la liste.
+  const totalSlots = await db.pickupSlot.count({ where: { pickupPointId: id } });
 
   const byDay = new Map<string, { label: string; slots: typeof point.slots }>();
   for (const s of point.slots) {
@@ -124,7 +126,7 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
                       réservé(s)
                     </td>
                     <td className="px-4 py-2">
-                      <form action={updateSlot} className="flex items-center gap-2">
+                      <form key={`${s.capacity}-${s.active}`} action={updateSlot} className="flex items-center gap-2">
                         <input type="hidden" name="id" value={s.id} />
                         <input className="input w-20 py-1" type="number" name="capacity" min={0} defaultValue={s.capacity} aria-label="Capacité" />
                         <label className="flex items-center gap-1">
@@ -150,6 +152,18 @@ export default async function PointPage({ params, searchParams }: PageProps<"/ad
             </table>
           </div>
         ))}
+        {/* Le formulaire reste affiché une fois tout supprimé, pour garder le message de résultat. */}
+        <ActionForm action={deleteAllSlots} className="space-y-3">
+          <input type="hidden" name="pickupPointId" value={point.id} />
+          {totalSlots > 0 && (
+            <ConfirmButton
+              message={`Supprimer les ${totalSlots} créneau(x) de ce point de retrait, passés compris ? Ceux qui ont déjà des commandes seront fermés, pas supprimés.`}
+              className="text-sm text-red-700 hover:underline"
+            >
+              Supprimer tous les créneaux
+            </ConfirmButton>
+          )}
+        </ActionForm>
       </section>
 
       <form action={deletePickupPoint} className="border-t border-chocolat/10 pt-6">

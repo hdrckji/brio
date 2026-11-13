@@ -260,6 +260,22 @@ export async function deleteSlot(formData: FormData) {
   revalidatePath(`/admin/points/${slot.pickupPointId}`);
 }
 
+export async function deleteAllSlots(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const pickupPointId = String(formData.get("pickupPointId") ?? "");
+  if (!pickupPointId) return { error: "Point de retrait manquant." };
+  // Comme pour un créneau seul : ceux qui ont des commandes (même annulées) sont fermés, pas supprimés.
+  const [deleted, , kept] = await db.$transaction([
+    db.pickupSlot.deleteMany({ where: { pickupPointId, orders: { none: {} } } }),
+    db.pickupSlot.updateMany({ where: { pickupPointId }, data: { active: false } }),
+    db.pickupSlot.count({ where: { pickupPointId } }),
+  ]);
+  revalidatePath(`/admin/points/${pickupPointId}`);
+  return {
+    ok: `${deleted.count} créneau(x) supprimé(s).${kept > 0 ? ` ${kept} créneau(x) avec des commandes conservé(s) et fermé(s).` : ""}`,
+  };
+}
+
 /* ---------- Commandes ---------- */
 
 export async function setOrderStatus(formData: FormData) {
